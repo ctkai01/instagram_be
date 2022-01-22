@@ -1,5 +1,12 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Post } from 'src/post/post.entity';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Timestamp,
+} from 'typeorm';
 import { ActivityStatus } from './enum/activy-status.enum';
 import { Gender } from './enum/gender.enum';
 import { PrivateStatus } from './enum/private.enum';
@@ -60,6 +67,9 @@ export class User {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts?: Post[];
 
   [key: string]: any;
 }

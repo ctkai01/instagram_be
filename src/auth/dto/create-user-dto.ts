@@ -10,7 +10,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsPhoneOrEmail({ message: 'Email or phone is invalid!' })
-  phoneOrEmail: string;
+  account: string;
 
   @IsString()
   @IsUniqueUserName({ message: 'Username already exist!' })

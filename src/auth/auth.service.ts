@@ -7,7 +7,7 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from './auth.repository';
 import { User } from './auth.entity';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from './interface/token.interface';
 
@@ -21,15 +21,16 @@ export class AuthService {
   ) {}
   async createUser(createUserDto: CreateUserDto): Promise<ResponseData> {
     createUserDto.password = await this.hashData(createUserDto.password);
-
     const user: User = await this.userRepository.createUser(createUserDto);
     const tokens = await this.getTokens(user.id, user.user_name);
     await this.updateRtHash(user.id, tokens.refresh_token);
 
     const responseData: ResponseData = {
-      data: user,
+      data: {
+        user,
+        tokens,
+      },
       message: 'Create User Successfully!',
-      tokens,
     };
 
     return responseData;
@@ -40,10 +41,17 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: [{ user_name: account }, { phone: account }, { email: account }],
     });
-    if (user && bcrypt.compare(password, user.password)) {
+    let checkPass = false;
+
+    if (user) {
+      checkPass = bcrypt.compareSync(password, user.password);
+    }
+
+    if (user && checkPass) {
+      console.log('Login');
       const tokens = await this.getTokens(user.id, user.user_name);
       await this.updateRtHash(user.id, tokens.refresh_token);
-
+      console.log(user);
       const responseData: ResponseData = {
         data: {
           user,
@@ -80,9 +88,8 @@ export class AuthService {
   }
 
   async hashData(data: string): Promise<string> {
-    // const salt = await bcrypt.genSalt();
-    // console.log('SSS', salt);
-    return await bcrypt.hash(data, 10);
+    const hashData = bcrypt.hashSync(data, 8);
+    return hashData;
   }
 
   async getTokens(userId: number, userName: string): Promise<Tokens> {
@@ -94,7 +101,7 @@ export class AuthService {
         },
         {
           secret: this.config.get('JWT_SECRET'),
-          expiresIn: 60 * 24,
+          expiresIn: 60 * 60 * 24,
         },
       ),
       this.jwtService.signAsync(

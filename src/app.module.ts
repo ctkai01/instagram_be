@@ -1,16 +1,25 @@
-import { AtGuard } from 'src/common/guards';
-import { HttpExceptionValidateFilter } from './auth/exception/http-exception.filter';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
+import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AtGuard } from 'src/common/guards';
 import { AuthModule } from './auth/auth.module';
+import { config } from './config';
+import { AppConfig } from './config/app.config';
+import { PostModule } from './post/post.module';
 
 @Module({
   imports: [
+    MulterModule.register({
+      dest: '/uploads',
+    }),
     ConfigModule.forRoot({
       envFilePath: [`.env.stage.${process.env.STAGE}`],
       // validationSchema: configValidateSchema,
+      isGlobal: true,
+      load: [config],
+      cache: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -29,12 +38,14 @@ import { AuthModule } from './auth/auth.module';
       },
     }),
     AuthModule,
+    PostModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: AtGuard,
     },
+    AppConfig,
   ],
 })
 export class AppModule {}

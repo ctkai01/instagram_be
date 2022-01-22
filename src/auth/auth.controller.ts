@@ -13,7 +13,6 @@ import {
 } from 'src/common/decorators';
 import { AtGuard, RtGuard } from 'src/common/guards';
 import { TransformInterceptor } from './../custom-response/core.response';
-import { User } from './auth.entity';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { LoginUserDto } from './dto/login-user-dto';
