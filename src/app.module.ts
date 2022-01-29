@@ -6,8 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AtGuard } from 'src/common/guards';
 import { AuthModule } from './auth/auth.module';
 import { config } from './config';
-import { AppConfig } from './config/app.config';
+import { AppConfigModule } from './config/app.config';
 import { PostModule } from './post/post.module';
+import { RelationModule } from './relation/relation.module';
+import { UserService } from './user/user.service';
+import { UserController } from './user/user.controller';
+import { UserModule } from './user/user.module';
+import { PostController } from './post/post.controller';
+import { RelationController } from './relation/relation.controller';
 
 @Module({
   imports: [
@@ -19,7 +25,6 @@ import { PostModule } from './post/post.module';
       // validationSchema: configValidateSchema,
       isGlobal: true,
       load: [config],
-      cache: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -34,18 +39,25 @@ import { PostModule } from './post/post.module';
           username: configService.get('DB_USERNAME'),
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_DATABASE'),
+          logging: true,
         };
       },
     }),
     AuthModule,
     PostModule,
+    AppConfigModule,
+    RelationModule,
+    UserModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: AtGuard,
     },
-    AppConfig,
+    {
+      provide: 'CONFIG_APP',
+      useValue: new ConfigService(),
+    },
   ],
 })
 export class AppModule {}

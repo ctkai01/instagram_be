@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { User } from 'src/auth/auth.entity';
 import {
   Column,
@@ -8,7 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CommentPostStatus } from './enum/comment-post-status.enum';
+import { ActiveStatus } from './enum/active-status';
 import { Media } from './media.entity';
 
 @Entity({ name: 'posts' })
@@ -25,8 +24,8 @@ export class Post {
   @Column({ nullable: true })
   created_by?: number | User;
 
-  @Column({ default: CommentPostStatus.NO_ACTIVE })
-  is_off_comment?: CommentPostStatus;
+  @Column({ default: ActiveStatus.NO_ACTIVE })
+  is_off_comment?: ActiveStatus;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

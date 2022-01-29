@@ -1,15 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Module } from '@nestjs/common';
+import { MulterConfig } from './multer-config';
 
-@Injectable()
-export class AppConfig {
-  static service: ConfigService;
-
-  constructor(service: ConfigService) {
-    AppConfig.service = service;
-  }
-
-  static get(key: string): any {
-    return this.service.get(key);
-  }
-}
+@Module({
+  providers: [MulterConfig],
+  exports: [MulterConfig],
+})
+export class AppConfigModule {}

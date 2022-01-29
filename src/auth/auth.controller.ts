@@ -17,7 +17,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { LoginUserDto } from './dto/login-user-dto';
 import { HttpExceptionValidateFilter } from './exception/http-exception.filter';
-import { ResponseData } from './interface/response.interface';
+import { ResponseData } from '../interface/response.interface';
 
 @Controller('auth')
 export class AuthController {

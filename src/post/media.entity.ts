@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'media' })
 export class Media {
@@ -25,6 +26,13 @@ export class Media {
   @JoinColumn({ name: 'post_id' })
   post?: Post;
 
+  @Exclude()
   @Column({ nullable: true })
   post_id?: number | Post;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at?: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updated_at?: string;
 }

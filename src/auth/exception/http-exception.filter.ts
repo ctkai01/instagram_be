@@ -24,6 +24,12 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
         message: message,
       });
     }
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      response.status(status).json({
+        statusCode: status,
+        message: message,
+      });
+    }
 
     response.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
       statusCode: HttpStatus.UNPROCESSABLE_ENTITY,

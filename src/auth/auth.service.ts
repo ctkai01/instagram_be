@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from './interface/jwt-payload.interface';
-import { ResponseData } from './interface/response.interface';
+import { ResponseData } from '../interface/response.interface';
 import { LoginUserDto } from './dto/login-user-dto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';

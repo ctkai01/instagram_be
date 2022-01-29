@@ -1,6 +1,7 @@
+import { PostCollection } from './../resource/post/post.collection';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ResponseData } from 'src/auth/interface/response.interface';
+import { ResponseData } from 'src/interface/response.interface';
 import { PostResource } from 'src/resource/post/post.resource';
 import { CreatePostDto } from './dto/create-post-dto';
 import { PostRepository } from './post.repository';
@@ -23,16 +24,47 @@ export class PostService {
       userId,
       files,
     );
-    const t = PostResource(post);
-    this.logger.verbose(`Data: ${JSON.stringify(t, null, 2)}`);
 
     const responseData: ResponseData = {
-      data: {
-        post: t,
-      },
+      data: PostResource(post),
       message: 'Create Post Successfully!',
     };
 
     return responseData;
+  }
+
+  async deletePost(idPost: number, userId: number) {
+    const result = await this.postRepository.deletePost(idPost, userId);
+    if (result) {
+      const responseData: ResponseData = {
+        message: 'Delete Post Successfully',
+      };
+
+      return responseData;
+    }
+  }
+
+  async getListPostByUserId(idUser: number): Promise<ResponseData> {
+    const listPost = await this.postRepository.getListPostByUser(idUser);
+
+    if (listPost) {
+      const responseData: ResponseData = {
+        data: PostCollection(listPost),
+        message: 'Get List Post Successfully',
+      };
+
+      return responseData;
+    }
+  }
+
+  async getPost(idPost: number): Promise<ResponseData> {
+    const post = await this.postRepository.getPost(idPost);
+    if (post) {
+      const responseData: ResponseData = {
+        data: PostResource(post),
+        message: 'Get Post Successfully',
+      };
+      return responseData;
+    }
   }
 }

@@ -16,5 +16,6 @@ import { RtStrategy } from './strategy/rt.strategy';
   ],
   providers: [AuthService, AtStrategy, RtStrategy],
   controllers: [AuthController],
+  // exports: [UserRepository],
 })
 export class AuthModule {}
