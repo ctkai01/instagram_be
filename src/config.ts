@@ -4,7 +4,7 @@ export const config = () => ({
     root: '/uploads',
     post: process.env.UPLOAD_POST,
   },
-  following: {
+  follow: {
     take: 12,
   },
 });

@@ -14,6 +14,7 @@ import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { PostController } from './post/post.controller';
 import { RelationController } from './relation/relation.controller';
+import { StoryModule } from './story/story.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { RelationController } from './relation/relation.controller';
     AppConfigModule,
     RelationModule,
     UserModule,
+    StoryModule,
   ],
   providers: [
     {

@@ -38,4 +38,14 @@ export class UserRepository extends Repository<User> {
     const user = await this.findOne(userId);
     return user;
   }
+
+  async getUserByIdWithRelation(userId: number): Promise<User> {
+    const user = await this.createQueryBuilder('users')
+      .leftJoinAndSelect('users.posts', 'posts')
+      .leftJoinAndSelect('posts.media', 'media')
+      .where('users.id = :userId', { userId: userId })
+      .orderBy('posts.created_at', 'DESC')
+      .getOne();
+    return user;
+  }
 }

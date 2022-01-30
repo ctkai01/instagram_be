@@ -85,6 +85,12 @@ export class User {
   @OneToMany(() => Relation, (relation) => relation.userFollowing)
   following?: Relation[];
 
+  is_following?: FollowStatus;
+
+  count_following?: number;
+
+  count_follower?: number;
+
   async isFollowing?(userTarget: User): Promise<FollowStatus> {
     const isFollowing = await getRepository(User)
       .createQueryBuilder('users')
@@ -97,6 +103,32 @@ export class User {
       .getCount();
 
     return Boolean(isFollowing) ? FollowStatus.FOLLOW : FollowStatus.UN_FOLLOW;
+  }
+
+  async countFollowingUser?(): Promise<number> {
+    const countFollowing = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.following', 'relations')
+      .where('relations.user_id = :userId', { userId: this.id })
+      .andWhere('relations.is_follow = :follow', {
+        follow: FollowStatus.FOLLOW,
+      })
+      .getCount();
+
+    return countFollowing;
+  }
+
+  async countFollowerUser?(): Promise<number> {
+    const countFollower = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.follower', 'relations')
+      .where('relations.friend_id = :userId', { userId: this.id })
+      .andWhere('relations.is_follow = :follow', {
+        follow: FollowStatus.FOLLOW,
+      })
+      .getCount();
+
+    return countFollower;
   }
 
   async getFollowingAndCountPagination?(
@@ -113,6 +145,7 @@ export class User {
         follow: FollowStatus.FOLLOW,
       })
       .orderBy('relations.created_at', 'DESC')
+      .addOrderBy('posts.created_at', 'DESC')
       .limit(take)
       .offset(skip)
       .getManyAndCount();
@@ -120,8 +153,11 @@ export class User {
     return [usersFollowing, count];
   }
 
-  async getFollower?(): Promise<User[]> {
-    const usersFollower = await getRepository(User)
+  async getFollowerAndCountPagination?(
+    pagination: Pagination,
+  ): Promise<[User[], number]> {
+    const { skip, take } = pagination;
+    const [usersFollower, count] = await getRepository(User)
       .createQueryBuilder('users')
       .leftJoin('users.follower', 'relations')
       .leftJoinAndSelect('users.posts', 'posts')
@@ -130,10 +166,29 @@ export class User {
       .andWhere('relations.is_follow = :follow', {
         follow: FollowStatus.FOLLOW,
       })
-      .orderBy('media.id', 'DESC')
       .orderBy('relations.created_at', 'DESC')
-      .getMany();
+      .addOrderBy('posts.created_at', 'DESC')
+      .limit(take)
+      .offset(skip)
+      .getManyAndCount();
 
-    return usersFollower;
+    return [usersFollower, count];
   }
+
+  // async getFollower?(): Promise<User[]> {
+  //   const usersFollower = await getRepository(User)
+  //     .createQueryBuilder('users')
+  //     .leftJoin('users.follower', 'relations')
+  //     .leftJoinAndSelect('users.posts', 'posts')
+  //     .leftJoinAndSelect('posts.media', 'media')
+  //     .where('relations.friend_id = :userId', { userId: this.id })
+  //     .andWhere('relations.is_follow = :follow', {
+  //       follow: FollowStatus.FOLLOW,
+  //     })
+  //     .orderBy('media.id', 'DESC')
+  //     .orderBy('relations.created_at', 'DESC')
+  //     .getMany();
+
+  //   return usersFollower;
+  // }
 }

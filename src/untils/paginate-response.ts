@@ -17,7 +17,10 @@ export function paginateResponse(
   };
 }
 
-export function calcPaginate(take: number, pageNumber: number) {
+export function calcPaginate(
+  take: number,
+  pageNumber: number,
+): [take: number, page: number, skip: number] {
   const page = pageNumber || 1;
   const skip = (page - 1) * take;
 
