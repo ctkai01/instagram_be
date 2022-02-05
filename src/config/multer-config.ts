@@ -10,9 +10,7 @@ export class MulterConfig {
   private config: ConfigService<Record<string, unknown>, false>;
   constructor() {
     this.config = new ConfigService();
-  }
-  test() {
-    return this.config.get('upload');
+    console.log('???');
   }
   options = () => ({
     limits: {
@@ -20,15 +18,20 @@ export class MulterConfig {
     },
     // Check the mimetypes to allow for upload
     fileFilter: (req: any, file: Express.Multer.File, cb: any) => {
+      console.log(file.mimetype, 'Files');
       if (file.mimetype.match(/\/(jpg|jpeg|png|gif|mp4|mp3)$/)) {
         // Allow storage of file
         cb(null, true);
       } else {
         // Reject file
+        console.log(file.originalname, 'Err');
+
         cb(
           new HttpException(
-            `Unsupported file type ${extname(file.originalname)}`,
-            HttpStatus.BAD_REQUEST,
+            {
+              message: `Unsupported file type ${extname(file.originalname)}`,
+            },
+            HttpStatus.UNPROCESSABLE_ENTITY,
           ),
           false,
         );

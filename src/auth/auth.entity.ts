@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import { Pagination } from 'src/interface/pagination.interface';
 import { FollowStatus } from 'src/post/enum/follow-status.enum';
 import { Post } from 'src/post/post.entity';
+import { Story } from 'src/story/story.entity';
 import {
   BaseEntity,
   Column,
@@ -77,7 +78,8 @@ export class User {
   @OneToMany(() => Post, (post) => post.user)
   posts?: Post[];
 
-  [key: string]: any;
+  @OneToMany(() => Story, (story) => story.user)
+  stories?: Post[];
 
   @OneToMany(() => Relation, (relation) => relation.userFollower)
   follower?: Relation[];
@@ -174,21 +176,4 @@ export class User {
 
     return [usersFollower, count];
   }
-
-  // async getFollower?(): Promise<User[]> {
-  //   const usersFollower = await getRepository(User)
-  //     .createQueryBuilder('users')
-  //     .leftJoin('users.follower', 'relations')
-  //     .leftJoinAndSelect('users.posts', 'posts')
-  //     .leftJoinAndSelect('posts.media', 'media')
-  //     .where('relations.friend_id = :userId', { userId: this.id })
-  //     .andWhere('relations.is_follow = :follow', {
-  //       follow: FollowStatus.FOLLOW,
-  //     })
-  //     .orderBy('media.id', 'DESC')
-  //     .orderBy('relations.created_at', 'DESC')
-  //     .getMany();
-
-  //   return usersFollower;
-  // }
 }

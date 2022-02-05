@@ -1,5 +1,4 @@
 import { Post } from 'src/post/post.entity';
-import { MediaType } from './enum/media-enum';
 import {
   Column,
   Entity,
@@ -7,7 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
+import { MediaType } from './enum/media-enum';
+
+export type MediaEntity = 'Post';
 
 @Entity({ name: 'media' })
 export class Media {
@@ -23,12 +24,12 @@ export class Media {
   @ManyToOne(() => Post, (post) => post.media, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'post_id' })
+  @JoinColumn([{ name: 'post_id', referencedColumnName: 'id' }])
   post?: Post;
 
-  @Exclude()
-  @Column({ nullable: true })
-  post_id?: number | Post;
+  // @Exclude()
+  // @Column({ nullable: true })
+  // post_id?: number | Post;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

@@ -1,10 +1,16 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
-import { NotFoundErrorCtor } from 'rxjs/internal/util/NotFoundError';
 import { User } from 'src/auth/auth.entity';
-import { EntityRepository, getRepository, Repository } from 'typeorm';
+import {
+  EntityRepository,
+  getConnection,
+  getRepository,
+  Repository,
+} from 'typeorm';
+import { AbstractPolymorphicRepository } from 'typeorm-polymorphic';
 import { CreatePostDto } from './dto/create-post-dto';
 import { MediaType } from './enum/media-enum';
 import { Media } from './media.entity';
+import { MediaRepository } from './media.repository';
 import { Post } from './post.entity';
 
 @EntityRepository(Post)
@@ -14,47 +20,44 @@ export class PostRepository extends Repository<Post> {
     createPostDto: CreatePostDto,
     userId: number,
     files: Array<Express.Multer.File>,
-  ) {
+  ): Promise<Post> {
     const { caption, location } = createPostDto;
 
     try {
       const userRepository = this.manager.getRepository(User);
       const userAuth = await userRepository.findOne({ id: userId });
-
       const mediaEntityList = [];
-
-      files.forEach((file) => {
-        let type;
-        if (file.mimetype.split('/')[0] === 'image') {
-          type = MediaType.image;
-        } else {
-          type = MediaType.video;
-        }
-
-        const createEntityMedia = getRepository(Media).create({
-          name: file.path.replace('\\', '\\'),
-          type,
-        });
-
-        mediaEntityList.push(createEntityMedia);
-      });
 
       const data: Post = {
         caption,
         location,
         user: userAuth,
-        media: mediaEntityList,
       };
-      const post = this.create(data);
+      files.forEach((file) => {
+        let type: MediaType;
+        if (file.mimetype.split('/')[0] === 'image') {
+          type = MediaType.image;
+        } else {
+          type = MediaType.video;
+        }
+        const createEntityMedia = this.manager.getRepository(Media).create({
+          name: file.path.replace('\\', '\\'),
+          type,
+        });
+        mediaEntityList.push(createEntityMedia);
+      });
+      data['media'] = mediaEntityList;
 
+      const post = this.create(data);
       const postCreated = await this.save(post);
+
       const mediaEntityNewList = mediaEntityList.map((mediaEntity: Media) => {
         return {
           ...mediaEntity,
           post: postCreated,
         };
       });
-      await getRepository(Media).save(mediaEntityNewList);
+      await this.manager.getRepository(Media).save(mediaEntityNewList);
       return postCreated;
     } catch (err) {
       console.log(err);
@@ -64,7 +67,7 @@ export class PostRepository extends Repository<Post> {
   async deletePost(idPost: number, userId: number) {
     const post = await this.findOne({
       where: { id: idPost },
-      relations: ['user', 'media'],
+      relations: ['user'],
     });
 
     if (!post) {
@@ -78,8 +81,9 @@ export class PostRepository extends Repository<Post> {
     }
 
     try {
-      const result = await this.remove(post);
-      return result;
+      const resultDeletePost = await this.remove(post);
+
+      return Boolean(resultDeletePost);
     } catch (err) {
       console.log(err);
     }

@@ -9,12 +9,8 @@ import { config } from './config';
 import { AppConfigModule } from './config/app.config';
 import { PostModule } from './post/post.module';
 import { RelationModule } from './relation/relation.module';
-import { UserService } from './user/user.service';
-import { UserController } from './user/user.controller';
-import { UserModule } from './user/user.module';
-import { PostController } from './post/post.controller';
-import { RelationController } from './relation/relation.controller';
 import { StoryModule } from './story/story.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [

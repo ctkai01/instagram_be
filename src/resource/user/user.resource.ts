@@ -9,8 +9,8 @@ export const UserResource = async (
     ...data,
     posts: PostCollection(data.posts),
     is_following: await userAuth.isFollowing(data),
-    countFollower: await data.countFollowerUser(),
-    countFollowing: await data.countFollowingUser(),
+    count_follower: await data.countFollowerUser(),
+    count_following: await data.countFollowingUser(),
   };
 
   delete dataTransform['refresh_token'];

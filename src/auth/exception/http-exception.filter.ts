@@ -13,6 +13,7 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
+
     const message =
       exception.getResponse()['message'].length > 1
         ? exception.getResponse()['message']
@@ -25,6 +26,13 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
       });
     }
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      response.status(status).json({
+        statusCode: status,
+        message: message,
+      });
+    }
+
+    if (status === HttpStatus.NOT_FOUND) {
       response.status(status).json({
         statusCode: status,
         message: message,

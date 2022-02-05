@@ -34,7 +34,7 @@ export class Post {
   updated_at?: string;
 
   @ManyToOne(() => User, (user) => user.posts, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'created_by', referencedColumnName: 'id' })
   user: User;
