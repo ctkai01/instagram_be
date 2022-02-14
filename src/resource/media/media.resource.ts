@@ -1,4 +1,4 @@
-import { Media } from './../../post/media.entity';
+import { Media } from 'src/entities/media.entity';
 
 export const MediaResource = (data: Media): Media => {
   let name = 'http://localhost:5000/' + data.name.split('\\').join('/');

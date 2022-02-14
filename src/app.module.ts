@@ -4,14 +4,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import moment from 'moment';
-import { AtGuard } from 'src/common/guards';
-import { AuthModule } from './auth/auth.module';
+import { AtGuard } from 'src/guards';
+import { AuthModule } from './module/auth/auth.module';
 import { config } from './config';
 import { AppConfigModule } from './config/app.config';
-import { PostModule } from './post/post.module';
-import { RelationModule } from './relation/relation.module';
-import { StoryModule } from './story/story.module';
-import { UserModule } from './user/user.module';
+import { PostModule } from './module/post/post.module';
+import { RelationModule } from './module/relation/relation.module';
+import { StoryModule } from './module/story/story.module';
+import { UserModule } from './module/user/user.module';
 
 @Module({
   imports: [

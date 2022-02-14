@@ -1,5 +1,5 @@
+import { Media } from 'src/entities/media.entity';
 import { MediaResource } from './media.resource';
-import { Media } from '../../post/media.entity';
 
 export const MediaCollection = (datas: Media[]): Media[] => {
   const mediaCollection = datas.map((media: Media): Media => {

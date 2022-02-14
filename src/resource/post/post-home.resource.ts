@@ -1,5 +1,5 @@
-import { User } from 'src/auth/auth.entity';
-import { Post } from 'src/post/post.entity';
+import { User } from 'src/entities/auth.entity';
+import { Post } from 'src/entities/post.entity';
 import { MediaCollection } from '../media/media.collection';
 import { UserHomeResource } from '../user/user-home.resource';
 

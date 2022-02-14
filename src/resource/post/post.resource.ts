@@ -1,4 +1,4 @@
-import { Post } from 'src/post/post.entity';
+import { Post } from 'src/entities/post.entity';
 import { MediaCollection } from '../media/media.collection';
 import { UserLoginResource } from '../user/user-login.resource';
 

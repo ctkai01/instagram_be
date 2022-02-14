@@ -1,4 +1,4 @@
-import { User } from 'src/auth/auth.entity';
+import { User } from 'src/entities/auth.entity';
 import { UserResource } from './user.resource';
 
 export const UserCollection = async (

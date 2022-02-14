@@ -1,4 +1,4 @@
-import { Post } from 'src/post/post.entity';
+import { Post } from 'src/entities/post.entity';
 import { PostResource } from './post.resource';
 
 export const PostCollection = (datas: Post[]): Post[] => {

@@ -1,4 +1,4 @@
-import { Story } from 'src/story/story.entity';
+import { Story } from 'src/entities/story.entity';
 
 export const StoryResource = (data: Story): Story => {
   let name = 'http://localhost:5000/' + data.media.split('\\').join('/');

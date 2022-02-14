@@ -1,4 +1,4 @@
-import { User } from 'src/auth/auth.entity';
+import { User } from 'src/entities/auth.entity';
 
 export const UserLoginResource = (data: User): User => {
   let name = 'http://localhost:5000/' + data.avatar.split('\\').join('/');
