@@ -2,6 +2,7 @@ import { EntityRepository, Repository } from 'typeorm';
 import { User } from './auth.entity';
 import { CreateUserDto } from './dto/create-user-dto';
 import { ConflictException } from '@nestjs/common';
+import { defaultAvatar } from 'src/untils/until';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -12,6 +13,7 @@ export class UserRepository extends Repository<User> {
       user_name,
       name: full_name,
       password: password,
+      avatar: defaultAvatar(),
     };
     const regexEmail =
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

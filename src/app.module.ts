@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, Scope } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import moment from 'moment';
 import { AtGuard } from 'src/common/guards';
 import { AuthModule } from './auth/auth.module';
 import { config } from './config';

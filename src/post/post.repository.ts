@@ -101,7 +101,7 @@ export class PostRepository extends Repository<Post> {
     }
   }
 
-  async getPost(postId: number): Promise<any> {
+  async getPostById(postId: number): Promise<any> {
     const post = await this.findOne({
       where: { id: postId },
       relations: ['media', 'user'],
@@ -110,5 +110,16 @@ export class PostRepository extends Repository<Post> {
       throw new NotFoundException('Post not found');
     }
     return post;
+  }
+
+  async getAllPost(): Promise<Post[]> {
+    try {
+      const posts = await this.find({
+        relations: ['user', 'media'],
+      });
+      return posts;
+    } catch (err) {
+      console.log(err);
+    }
   }
 }

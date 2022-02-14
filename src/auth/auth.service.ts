@@ -10,6 +10,8 @@ import { User } from './auth.entity';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from './interface/token.interface';
+import { UserResource } from 'src/resource/user/user.resource';
+import { UserLoginResource } from 'src/resource/user/user-login.resource';
 
 @Injectable()
 export class AuthService {
@@ -48,13 +50,11 @@ export class AuthService {
     }
 
     if (user && checkPass) {
-      console.log('Login');
       const tokens = await this.getTokens(user.id, user.user_name);
       await this.updateRtHash(user.id, tokens.refresh_token);
-      console.log(user);
       const responseData: ResponseData = {
         data: {
-          user,
+          user: await UserLoginResource(user),
           tokens,
         },
         message: 'Login Successfully!',

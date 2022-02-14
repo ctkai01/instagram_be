@@ -28,6 +28,9 @@ export class Relation {
   is_block?: ActiveStatus;
 
   @Column({ default: ActiveStatus.NO_ACTIVE })
+  blocked?: ActiveStatus;
+
+  @Column({ default: ActiveStatus.NO_ACTIVE })
   is_restrict?: ActiveStatus;
 
   @Column({ default: ActiveStatus.NO_ACTIVE })

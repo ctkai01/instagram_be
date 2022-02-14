@@ -1,7 +1,6 @@
 import { User } from 'src/auth/auth.entity';
-import { PostCollection } from '../post/post.collection';
 
-export const UserResource = async (
+export const UserHomeResource = async (
   data: User,
   userAuth: User,
 ): Promise<User> => {
@@ -9,7 +8,6 @@ export const UserResource = async (
   name = name.replace('/public', '');
   const dataTransform: User = {
     ...data,
-    posts: PostCollection(data.posts),
     avatar: name,
     is_following: await userAuth.isFollowing(data),
     count_follower: await data.countFollowerUser(),

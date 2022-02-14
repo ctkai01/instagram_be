@@ -1,4 +1,5 @@
 import { User } from 'src/auth/auth.entity';
+import { Pagination } from 'src/interface/pagination.interface';
 import {
   Column,
   Entity,
@@ -41,4 +42,15 @@ export class Post {
 
   @OneToMany(() => Media, (media) => media.post)
   media?: Media[];
+
+  getPostCountPaginate?(
+    data: Post[],
+    pagination: Pagination,
+  ): [Post[], number] {
+    const { skip, take } = pagination;
+    const count = data.length;
+    const posts = data.slice(skip, take + skip);
+
+    return [posts, count];
+  }
 }

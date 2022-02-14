@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UploadedFiles,
   UseFilters,
   UseGuards,
@@ -14,7 +15,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { GetCurrentUserId } from 'src/common/decorators';
+import { User } from 'src/auth/auth.entity';
+import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
 import { AtGuard } from 'src/common/guards';
 import { MulterConfig } from 'src/config/multer-config';
 import { TransformInterceptor } from 'src/custom-response/core.response';
@@ -63,7 +65,15 @@ export class PostController {
   }
 
   @Get('/:id')
-  getPost(@Param('id', ParseIntPipe) postId: number) {
-    return this.postService.getPost(postId);
+  getPostById(@Param('id', ParseIntPipe) postId: number) {
+    return this.postService.getPostById(postId);
+  }
+
+  @Get()
+  async getPost(
+    @GetCurrentUser() userAuth: User,
+    @Query('page', ParseIntPipe) pageNumber: number,
+  ) {
+    return this.postService.getPost(userAuth, pageNumber);
   }
 }

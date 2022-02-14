@@ -1,10 +1,12 @@
 import { Exclude } from 'class-transformer';
 import { Pagination } from 'src/interface/pagination.interface';
+import { ActiveStatus } from 'src/post/enum/active-status';
 import { FollowStatus } from 'src/post/enum/follow-status.enum';
 import { Post } from 'src/post/post.entity';
 import { Story } from 'src/story/story.entity';
 import {
   BaseEntity,
+  Brackets,
   Column,
   Entity,
   getRepository,
@@ -36,6 +38,9 @@ export class User {
 
   @Column({ nullable: false, unique: true })
   user_name: string;
+
+  @Column()
+  avatar: string;
 
   @Exclude()
   @Column({ nullable: false })
@@ -118,6 +123,32 @@ export class User {
       .getCount();
 
     return countFollowing;
+  }
+
+  async idsNotFollowingAndBlockUser?(): Promise<number[]> {
+    const idsUser = await getRepository(User)
+      .createQueryBuilder('users')
+      .select('users.id')
+      .leftJoin('users.following', 'relations')
+      .where('relations.user_id = :userId', { userId: this.id })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('relations.is_follow != :follow', {
+            follow: FollowStatus.FOLLOW,
+          }).orWhere(
+            new Brackets((q) => {
+              q.where('relations.is_block = :statusBlock', {
+                statusBlock: ActiveStatus.ACTIVE,
+              }).orWhere('relations.blocked = :statusBlock', {
+                statusBlock: ActiveStatus.ACTIVE,
+              });
+            }),
+          );
+        }),
+      )
+      .getMany();
+
+    return idsUser.map((idUser: User) => idUser.id);
   }
 
   async countFollowerUser?(): Promise<number> {
