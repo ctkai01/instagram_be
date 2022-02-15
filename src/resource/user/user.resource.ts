@@ -9,7 +9,7 @@ export const UserResource = async (
   name = name.replace('/public', '');
   const dataTransform: User = {
     ...data,
-    posts: PostCollection(data.posts),
+    posts: await PostCollection(data.posts, userAuth),
     avatar: name,
     is_following: await userAuth.isFollowing(data),
     count_follower: await data.countFollowerUser(),

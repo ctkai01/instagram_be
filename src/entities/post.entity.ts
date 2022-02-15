@@ -3,6 +3,7 @@ import { Pagination } from 'src/interface';
 import {
   Column,
   Entity,
+  getRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -10,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from './auth.entity';
 import { Media } from './media.entity';
+import { PostUser } from './post-user.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -43,6 +45,9 @@ export class Post {
   @OneToMany(() => Media, (media) => media.post)
   media?: Media[];
 
+  @OneToMany(() => PostUser, (postUser) => postUser.post)
+  usersPost?: PostUser[];
+
   getPostCountPaginate?(
     data: Post[],
     pagination: Pagination,
@@ -52,5 +57,33 @@ export class Post {
     const posts = data.slice(skip, take + skip);
 
     return [posts, count];
+  }
+
+  like_count?: number;
+  is_like?: ActiveStatus;
+
+  async getCountLike?(): Promise<number> {
+    const countUserLike = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.postUsers', 'post_users')
+      .where('post_users.post_id = :postId', { postId: this.id })
+      .andWhere('post_users.is_like = :like', {
+        like: ActiveStatus.ACTIVE,
+      })
+      .getCount();
+    return countUserLike;
+  }
+
+  async isLike?(userAuth: User): Promise<ActiveStatus> {
+    const isLike = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.postUsers', 'post_users')
+      .where('post_users.post_id = :postId', { postId: this.id })
+      .andWhere('post_users.user_id = :userId', { userId: userAuth.id })
+      .andWhere('post_users.is_like = :like', {
+        like: ActiveStatus.ACTIVE,
+      })
+      .getCount();
+    return isLike;
   }
 }

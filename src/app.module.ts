@@ -12,6 +12,12 @@ import { PostModule } from './module/post/post.module';
 import { RelationModule } from './module/relation/relation.module';
 import { StoryModule } from './module/story/story.module';
 import { UserModule } from './module/user/user.module';
+import { User } from './entities/auth.entity';
+import { Relation } from './entities/relation.entity';
+import { PostUser } from './entities/post-user.entity';
+import { Media } from './entities/media.entity';
+import { Post } from './entities/post.entity';
+import { Story } from './entities/story.entity';
 
 @Module({
   imports: [
@@ -38,6 +44,7 @@ import { UserModule } from './module/user/user.module';
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_DATABASE'),
           logging: true,
+          entities: [User, Relation, PostUser, Media, Post, Story],
         };
       },
     }),

@@ -1,9 +1,10 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
-import { MediaType } from 'src/constants';
+import { ActiveStatus, MediaType } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Media } from 'src/entities/media.entity';
+import { PostUser } from 'src/entities/post-user.entity';
 import { Post } from 'src/entities/post.entity';
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, getRepository, Repository } from 'typeorm';
 import { CreatePostDto } from './dto/create-post-dto';
 
 @EntityRepository(Post)
@@ -112,6 +113,43 @@ export class PostRepository extends Repository<Post> {
         relations: ['user', 'media'],
       });
       return posts;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async reactPost(
+    userAuth: User,
+    post: Post,
+    statusLikeAction: ActiveStatus,
+    postUser: PostUser | undefined,
+  ) {
+    try {
+      if (!postUser) {
+        const postUser = new PostUser();
+        postUser.is_like = statusLikeAction;
+        postUser.post = post;
+        postUser.user = userAuth;
+        const postUserCreated = getRepository(PostUser).save(postUser);
+        return postUserCreated;
+      } else {
+        postUser.is_like = statusLikeAction;
+        postUser.updated_at = new Date().toISOString();
+        const postUserUpdate = getRepository(PostUser).save(postUser);
+        return postUserUpdate;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async getPostUser(idUser: number, idPost: number) {
+    try {
+      const postUser = await getRepository(PostUser).findOne({
+        where: { post_id: idPost, user_id: idUser },
+      });
+
+      return postUser;
     } catch (err) {
       console.log(err);
     }

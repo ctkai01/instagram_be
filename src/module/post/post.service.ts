@@ -1,6 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ActiveStatus, ActivityStatus } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Post } from 'src/entities/post.entity';
 import { Pagination } from 'src/interface/pagination.interface';
@@ -24,17 +30,17 @@ export class PostService {
 
   async createPost(
     createPostDto: CreatePostDto,
-    userId: number,
+    userAuth: User,
     files: Array<Express.Multer.File>,
   ): Promise<any> {
     const post = await this.postRepository.createPost(
       createPostDto,
-      userId,
+      userAuth.id,
       files,
     );
 
     const responseData: ResponseData = {
-      data: PostResource(post),
+      data: PostResource(post, userAuth),
       message: 'Create Post Successfully!',
     };
     return responseData;
@@ -51,12 +57,15 @@ export class PostService {
     }
   }
 
-  async getListPostByUserId(idUser: number): Promise<ResponseData> {
+  async getListPostByUserId(
+    idUser: number,
+    userAuth: User,
+  ): Promise<ResponseData> {
     const listPost = await this.postRepository.getListPostByUser(idUser);
 
     if (listPost) {
       const responseData: ResponseData = {
-        data: PostCollection(listPost),
+        data: PostCollection(listPost, userAuth),
         message: 'Get List Post Successfully',
       };
 
@@ -64,7 +73,7 @@ export class PostService {
     }
   }
 
-  async getPostById(idPost: number): Promise<ResponseData> {
+  async getPostById(idPost: number, userAuth: User): Promise<ResponseData> {
     const post = await this.postRepository.getPostById(idPost);
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -72,7 +81,7 @@ export class PostService {
 
     if (post) {
       const responseData: ResponseData = {
-        data: PostResource(post),
+        data: await PostResource(post, userAuth),
         message: 'Get Post Successfully',
       };
       return responseData;
@@ -120,10 +129,40 @@ export class PostService {
     return responseData;
   }
 
-  async reactPost(idPost: number, actionPostDto: ActionPostDto) {
+  async reactPost(
+    idPost: number,
+    actionPostDto: ActionPostDto,
+    userAuth: User,
+  ): Promise<ResponseData> {
     const post = await this.postRepository.getPostById(idPost);
     if (!post) {
       throw new NotFoundException('Post not found');
+    }
+    const postUser = await this.postRepository.getPostUser(userAuth.id, idPost);
+    if (postUser && postUser.is_like === actionPostDto.type) {
+      if (actionPostDto.type === ActiveStatus.ACTIVE) {
+        throw new InternalServerErrorException('Can not like post');
+      } else {
+        throw new InternalServerErrorException('Can not unlike post');
+      }
+    }
+
+    const result = await this.postRepository.reactPost(
+      userAuth,
+      post,
+      actionPostDto.type,
+      postUser,
+    );
+
+    if (result) {
+      const responseData: ResponseData = {
+        message:
+          actionPostDto.type === ActiveStatus.ACTIVE
+            ? 'Like post Successfully'
+            : 'Unlike post Successfully',
+      };
+
+      return responseData;
     }
   }
 }

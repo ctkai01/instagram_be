@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Logger,
   Param,
   ParseIntPipe,
@@ -45,11 +47,11 @@ export class PostController {
   )
   @Post()
   createPost(
-    @GetCurrentUserId() userId: number,
+    @GetCurrentUser() userAuth: User,
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() createPostDto: CreatePostDto,
   ) {
-    return this.postService.createPost(createPostDto, userId, files);
+    return this.postService.createPost(createPostDto, userAuth, files);
   }
 
   @Delete('/:id')
@@ -61,13 +63,19 @@ export class PostController {
   }
 
   @Get('/user/:id')
-  postByUserId(@Param('id', ParseIntPipe) userId: number) {
-    return this.postService.getListPostByUserId(userId);
+  postByUserId(
+    @Param('id', ParseIntPipe) userId: number,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.postService.getListPostByUserId(userId, userAuth);
   }
 
   @Get('/:id')
-  getPostById(@Param('id', ParseIntPipe) postId: number) {
-    return this.postService.getPostById(postId);
+  getPostById(
+    @Param('id', ParseIntPipe) postId: number,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.postService.getPostById(postId, userAuth);
   }
 
   @Get()
@@ -79,12 +87,12 @@ export class PostController {
   }
 
   @Post('/:id/react')
+  @HttpCode(HttpStatus.OK)
   async reactPost(
     @GetCurrentUser() userAuth: User,
     @Param('id', ParseIntPipe) idPost: number,
     @Body() actionPostDto: ActionPostDto,
   ) {
-    console.log(actionPostDto, idPost);
-    return this.postService.reactPost(idPost, actionPostDto);
+    return this.postService.reactPost(idPost, actionPostDto, userAuth);
   }
 }

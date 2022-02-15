@@ -17,6 +17,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PostUser } from './post-user.entity';
 import { Post } from './post.entity';
 import { Relation } from './relation.entity';
 import { Story } from './story.entity';
@@ -90,6 +91,9 @@ export class User {
 
   @OneToMany(() => Relation, (relation) => relation.userFollowing)
   following?: Relation[];
+
+  @OneToMany(() => PostUser, (postUser) => postUser.user)
+  postUsers?: PostUser[];
 
   is_following?: FollowStatus;
 
