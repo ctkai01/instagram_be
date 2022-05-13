@@ -14,6 +14,7 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { LoginUserDto } from './dto/login-user-dto';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
+import { Tokens } from './interface/token.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -31,13 +32,13 @@ export class AuthController {
   @Post('/login')
   @UseInterceptors(TransformInterceptor)
   @UseFilters(new HttpExceptionValidateFilter())
-  login(@Body() loginUserDto: LoginUserDto) {
+  login(@Body() loginUserDto: LoginUserDto): Promise<ResponseData> {
     return this.authService.login(loginUserDto);
   }
 
   @UseGuards(AtGuard)
   @Post('logout')
-  logout(@GetCurrentUserId() userId: number) {
+  logout(@GetCurrentUserId() userId: number): Promise<void> {
     return this.authService.logout(userId);
   }
 
@@ -47,7 +48,7 @@ export class AuthController {
   refreshToken(
     @GetCurrentUser('refreshToken') refreshToken: string,
     @GetCurrentUserId() userId: any,
-  ) {
+  ): Promise<Tokens> {
     return this.authService.refreshToken(userId, refreshToken);
   }
 }

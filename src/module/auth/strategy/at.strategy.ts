@@ -13,6 +13,7 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   validate(payload: any): any {
+    console.log(payload);
     return payload;
   }
 }

@@ -27,7 +27,7 @@ export class AuthService {
 
     const responseData: ResponseData = {
       data: {
-        user,
+        user: await UserLoginResource(user),
         tokens,
       },
       message: 'Create User Successfully!',
