@@ -16,7 +16,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { GetCurrentUser, GetCurrentUserId } from 'src/decorators';
 import { AtGuard } from 'src/guards';
 import { MulterConfig } from 'src/config/multer-config';
@@ -39,19 +42,33 @@ export class PostController {
   ) {}
 
   @UseInterceptors(
-    FilesInterceptor(
-      'files', // name of the field being passed
-      10,
-      new MulterConfig().options(),
-    ),
+    FileFieldsInterceptor([
+      {
+        name: 'files',
+        maxCount: 10,
+      },
+      {
+        name: 'coverFiles',
+        maxCount: 10,
+      },
+    ], new MulterConfig().options()),
+    // FilesInterceptor(
+    //   'files', // name of the field being passed
+    //   10,
+    //   new MulterConfig().options(),
+    // ),
   )
   @Post()
   createPost(
     @GetCurrentUser() userAuth: User,
     @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() coverFiles: Array<Express.Multer.File>,
     @Body() createPostDto: CreatePostDto,
   ) {
-    return this.postService.createPost(createPostDto, userAuth, files);
+    console.log('Data', createPostDto)
+    console.log('Files', files)
+    console.log('Cover', coverFiles)
+    // return this.postService.createPost(createPostDto, userAuth, files);
   }
 
   @Delete('/:id')
