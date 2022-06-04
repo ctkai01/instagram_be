@@ -31,16 +31,20 @@ export class PostService {
   async createPost(
     createPostDto: CreatePostDto,
     userAuth: User,
-    files: Array<Express.Multer.File>,
+    fileUpload: Array<Express.Multer.File>,
+    filesNameUploadTrim: string[],
+    filesCover:  Array<Express.Multer.File>
   ): Promise<any> {
     const post = await this.postRepository.createPost(
       createPostDto,
       userAuth.id,
-      files,
+      fileUpload,
+      filesNameUploadTrim,
+      filesCover,
     );
 
     const responseData: ResponseData = {
-      data: PostResource(post, userAuth),
+      data: await PostResource(post, userAuth),
       message: 'Create Post Successfully!',
     };
     return responseData;

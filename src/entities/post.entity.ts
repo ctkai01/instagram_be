@@ -30,6 +30,9 @@ export class Post {
   @Column({ default: ActiveStatus.NO_ACTIVE })
   is_off_comment?: ActiveStatus;
 
+  @Column({ default: ActiveStatus.NO_ACTIVE })
+  is_hide_like_view?: ActiveStatus;
+  
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
 

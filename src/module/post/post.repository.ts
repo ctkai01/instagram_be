@@ -1,4 +1,5 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
+import { x } from 'joi';
 import { ActiveStatus, MediaType } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Media } from 'src/entities/media.entity';
@@ -13,31 +14,57 @@ export class PostRepository extends Repository<Post> {
   async createPost(
     createPostDto: CreatePostDto,
     userId: number,
-    files: Array<Express.Multer.File>,
+    fileUpload: Array<Express.Multer.File>,
+    filesNameUploadTrim: string[],
+    filesCover:  Array<Express.Multer.File>
   ): Promise<Post> {
-    const { caption, location } = createPostDto;
-
+    const { caption, location, isHideLikeAndView, isOffComment, optionFiles } = createPostDto;
+    // optionFiles[0].tags[0].
+    console.log('Location', location)
     try {
       const userRepository = this.manager.getRepository(User);
       const userAuth = await userRepository.findOne({ id: userId });
       const mediaEntityList = [];
-
+      console.log('hide', isHideLikeAndView)
+      console.log('comment', isOffComment)
       const data: Post = {
         caption,
         location,
         user: userAuth,
+        is_hide_like_view: isHideLikeAndView ? ActiveStatus.ACTIVE : ActiveStatus.NO_ACTIVE,
+        is_off_comment: isOffComment ? ActiveStatus.ACTIVE : ActiveStatus.NO_ACTIVE,
+
       };
-      files.forEach((file) => {
+      let indexVideo = 0
+      fileUpload.forEach((file, index) => {
         let type: MediaType;
+        let namePath: string;
+        let coverPath: string;
+        let isMute: ActiveStatus;
         if (file.mimetype.split('/')[0] === 'image') {
           type = MediaType.image;
+          namePath = file.path.replace('\\', '\\')
         } else {
           type = MediaType.video;
+          namePath = filesNameUploadTrim[indexVideo].replace('\\', '\\')
+          coverPath = filesCover[indexVideo].path.replace('\\', '\\')
+          isMute = optionFiles[index].isMute ? ActiveStatus.ACTIVE : ActiveStatus.NO_ACTIVE
+          indexVideo++
         }
-        const createEntityMedia = this.manager.getRepository(Media).create({
-          name: file.path.replace('\\', '\\'),
+        console.log('Cover', coverPath)
+        const tagUser = optionFiles[index].tags.map(tag => {
+          delete tag['url']
+          return tag
+        })
+        const dataMedia: Media = {
+          name: namePath,
           type,
-        });
+          cover_name: coverPath,
+          tags_user: tagUser,
+          is_mute: isMute
+        }
+
+        const createEntityMedia = this.manager.getRepository(Media).create(dataMedia);
         mediaEntityList.push(createEntityMedia);
       });
       data['media'] = mediaEntityList;

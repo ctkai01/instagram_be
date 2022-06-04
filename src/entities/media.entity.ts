@@ -1,4 +1,5 @@
-import { MediaType } from 'src/constants';
+import { ActiveStatus, MediaType } from 'src/constants';
+import { TagsUserPost } from 'src/interface/tag-user-post.interface';
 import {
   Column,
   Entity,
@@ -18,6 +19,16 @@ export class Media {
 
   @Column()
   type: MediaType;
+
+  @Column({nullable: true})
+  cover_name?: string;
+
+  @Column({ default: ActiveStatus.NO_ACTIVE })
+  is_mute?: ActiveStatus;
+
+  // tags: 
+  @Column({type: 'json', nullable: true})
+  tags_user?: TagsUserPost[];
 
   @ManyToOne(() => Post, (post) => post.media, {
     onDelete: 'CASCADE',

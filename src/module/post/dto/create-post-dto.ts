@@ -17,13 +17,13 @@ export class CreatePostDto {
   @ValidateNested({ each: true })
   @Transform(({value, key, obj, type }) => plainToClass(OptionFiles, JSON.parse(value)))
   @Type(() => OptionFiles)
-  optionFiles: OptionFiles[]
+  optionFiles: OptionFiles[] 
   
-  @Transform(({value, key, obj, type }) => Boolean(value))
+  @Transform(({value, key, obj, type }) => Boolean(+value))
   @IsBoolean()
   isHideLikeAndView: boolean;
-  
-  @Transform(({value, key, obj, type }) => Boolean(value))
+
+  @Transform(({value, key, obj, type }) => Boolean(+value))
   @IsBoolean()
   isOffComment: boolean
 }

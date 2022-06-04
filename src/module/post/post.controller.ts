@@ -1,3 +1,4 @@
+import { path } from '@ffmpeg-installer/ffmpeg';
 import {
   Body,
   Controller,
@@ -9,27 +10,29 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Query,
-  UploadedFiles,
+  Query, UploadedFiles,
   UseFilters,
   UseGuards,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
-  FileFieldsInterceptor,
-  FilesInterceptor,
+  FileFieldsInterceptor
 } from '@nestjs/platform-express';
-import { GetCurrentUser, GetCurrentUserId } from 'src/decorators';
-import { AtGuard } from 'src/guards';
 import { MulterConfig } from 'src/config/multer-config';
 import { TransformInterceptor } from 'src/custom-response/core.response';
+import { GetCurrentUser, GetCurrentUserId } from 'src/decorators';
+import { User } from 'src/entities/auth.entity';
+import { HttpExceptionValidateFilter } from 'src/filter/http-exception.filter';
+import { AtGuard } from 'src/guards';
+import { ffmpegSync } from 'src/untils/until';
 import { ActionPostDto } from './dto/action-post-dto';
 import { CreatePostDto } from './dto/create-post-dto';
 import { PostService } from './post.service';
-import { HttpExceptionValidateFilter } from 'src/filter/http-exception.filter';
-import { User } from 'src/entities/auth.entity';
-
+var ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(path);
 @Controller('posts')
 @UseFilters(new HttpExceptionValidateFilter())
 @UseInterceptors(TransformInterceptor)
@@ -42,33 +45,44 @@ export class PostController {
   ) {}
 
   @UseInterceptors(
-    FileFieldsInterceptor([
-      {
-        name: 'files',
-        maxCount: 10,
-      },
-      {
-        name: 'coverFiles',
-        maxCount: 10,
-      },
-    ], new MulterConfig().options()),
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'files',
+          maxCount: 10,
+        },
+        {
+          name: 'coverFiles',
+          maxCount: 10,
+        },
+      ],
+      new MulterConfig().options(),
+    ),
     // FilesInterceptor(
     //   'files', // name of the field being passed
     //   10,
     //   new MulterConfig().options(),
     // ),
   )
+  @UsePipes(new ValidationPipe({ transform: true }))
   @Post()
-  createPost(
+  async createPost(
     @GetCurrentUser() userAuth: User,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @UploadedFiles() coverFiles: Array<Express.Multer.File>,
+    @UploadedFiles()
+    files: { files: Express.Multer.File[]; coverFiles: Express.Multer.File[] },
     @Body() createPostDto: CreatePostDto,
   ) {
-    console.log('Data', createPostDto)
-    console.log('Files', files)
-    console.log('Cover', coverFiles)
-    // return this.postService.createPost(createPostDto, userAuth, files);
+   
+    const fileUpload = files.files;
+    const filesNameUploadTrim = await Promise.all(
+      fileUpload.filter(file => file.mimetype === 'video/mp4').map(async (file, index) => {
+          const startTime = createPostDto.optionFiles[index].startTime;
+          const endTime = createPostDto.optionFiles[index].endTime;
+          return await ffmpegSync(file, index, startTime, endTime);
+      }),
+    );
+   
+    return this.postService.createPost(createPostDto, userAuth, fileUpload, filesNameUploadTrim, files.coverFiles);
   }
 
   @Delete('/:id')

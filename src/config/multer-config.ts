@@ -10,7 +10,6 @@ export class MulterConfig {
   private config: ConfigService<Record<string, unknown>, false>;
   constructor() {
     this.config = new ConfigService();
-    console.log('???');
   }
   options = () => ({
     limits: {
