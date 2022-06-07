@@ -36,8 +36,8 @@ export class UserController {
 
   @Get('/:id/following')
   getFollowingByIdUser(
-    @Param('id', ParseIntPipe) idUser: number,
-    @Query('page', ParseIntPipe) page: number,
+    @Param('id') idUser: number,
+    @Query('page') page: number,
     @GetCurrentUser() userAuth: User,
   ): ResponseData {
     return this.userService.listFollowingByUserId(idUser, page, userAuth);
@@ -45,9 +45,9 @@ export class UserController {
 
   @Get('/:id/follower')
   getFollowerByIdUser(
-    @Param('id', ParseIntPipe) idUser: number,
+    @Param('id') idUser: number,
     @GetCurrentUser() userAuth: User,
-    @Query('page', ParseIntPipe) page?: number | undefined,
+    @Query('page') page?: number | undefined,
   ): ResponseData {
     return this.userService.listFollowerByUserId(idUser, page, userAuth);
   }

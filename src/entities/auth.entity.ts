@@ -151,11 +151,11 @@ export class User {
                 statusBlock: ActiveStatus.ACTIVE,
               });
             }),
-          );
+          )
         }),
       )
       .getMany();
-
+        console.log(idsUser)
     return idsUser.map((idUser: User) => idUser.id);
   }
 

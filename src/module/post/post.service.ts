@@ -93,7 +93,8 @@ export class PostService {
   }
 
   async getPost(userAuth: User, pageNumber: number): Promise<any> {
-    const idsUserNotShow = await userAuth.idsNotFollowingAndBlockUser();
+    let idsUserFollowing = await userAuth.getFollowing();
+    idsUserFollowing.push(userAuth.id)
     const posts = (await this.postRepository.getAllPost()).sort(function (
       postA,
       postB,
@@ -105,10 +106,6 @@ export class PostService {
         : 0;
     });
 
-    const postsShow = posts.filter(
-      (post: Post) => !idsUserNotShow.includes(post.created_by as number),
-    );
-
     const [take, page, skip] = calcPaginate(
       this.configService.get('follow.take'),
       pageNumber,
@@ -119,10 +116,23 @@ export class PostService {
       take,
     };
 
-    const [postsPaginate, count] = new Post().getPostCountPaginate(
-      postsShow,
-      pagination,
-    );
+    let postsPaginate
+    let count
+    if (!idsUserFollowing.length) {
+      [postsPaginate, count] = new Post().getPostCountPaginate(
+        posts,
+        pagination,
+      );
+    } else {
+      const postsShow = posts.filter(
+        (post: Post) => idsUserFollowing.includes(post.created_by as number),
+      );
+  
+       [postsPaginate, count] = new Post().getPostCountPaginate(
+        postsShow,
+        pagination,
+      );
+    }
 
     const postCollection = await PostHomeCollection(postsPaginate, userAuth);
 

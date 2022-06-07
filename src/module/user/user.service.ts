@@ -92,9 +92,15 @@ export class UserService {
   }
 
   async searchUserByUserNameAndFullName(search: string): Promise<ResponseData> {
-    const take = this.configService.get('search.take')
-    let users = await this.userRepository.getUserByUserNameOrFullname(search)
-    users = users.slice(0, take || 1)
+    const take = this.configService.get('search.take');
+
+    let users;
+    if (search) {
+      users = await this.userRepository.getUserByUserNameOrFullname(search);
+      users = users.slice(0, take || 1);
+    } else {
+      users = [];
+    }
 
     const dataSearchUser = await UserSearchCollection(users);
     const responseData: ResponseData = {
@@ -105,10 +111,15 @@ export class UserService {
     return responseData;
   }
 
-  async searchUserByUserNameAndFullNameHome(search: string, userAuth: User): Promise<ResponseData> {
-    const take = this.configService.get('search.take')
-    let users = await this.userRepository.getUserByUserNameOrFullnameHome(search)
-    users = users.slice(0, take || 1)
+  async searchUserByUserNameAndFullNameHome(
+    search: string,
+    userAuth: User,
+  ): Promise<ResponseData> {
+    const take = this.configService.get('search.take');
+    let users = await this.userRepository.getUserByUserNameOrFullnameHome(
+      search,
+    );
+    users = users.slice(0, take || 1);
 
     const dataSearchUser = await UserHomeSearchCollection(users, userAuth);
 
@@ -119,5 +130,4 @@ export class UserService {
 
     return responseData;
   }
-  
 }
