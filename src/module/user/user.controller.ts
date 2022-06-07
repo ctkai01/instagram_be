@@ -23,6 +23,17 @@ import { User } from 'src/entities/auth.entity';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Get('home')
+  async searchUserByUserNameAndFullNameHome(
+    @Query('search') search: string,
+    @GetCurrentUser() userAuth: User,
+  ): Promise<ResponseData> {
+    return this.userService.searchUserByUserNameAndFullNameHome(
+      search,
+      userAuth,
+    );
+  }
+
   @Get('/:id/following')
   getFollowingByIdUser(
     @Param('id', ParseIntPipe) idUser: number,
@@ -47,5 +58,12 @@ export class UserController {
     @GetCurrentUser() userAuth: User,
   ) {
     return this.userService.profileUserById(idUser, userAuth);
+  }
+
+  @Get('')
+  searchUserByUserNameAndFullName(
+    @Query('search') search: string,
+  ): Promise<ResponseData> {
+    return this.userService.searchUserByUserNameAndFullName(search);
   }
 }

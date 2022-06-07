@@ -44,7 +44,7 @@ export class User {
 
   @Exclude()
   @Column({ nullable: false })
-  password: string;
+  password?: string;
 
   @Column({ nullable: true })
   website?: string;
@@ -70,6 +70,9 @@ export class User {
 
   @Column({ default: StoryStatus.ACTIVE })
   status_story?: StoryStatus;
+
+  @Column({ default: ActivityStatus.NO_ACTIVE })
+  is_tick?: ActivityStatus;
 
   @Column({ nullable: true, type: 'json' })
   status_notification?: string;
@@ -100,6 +103,8 @@ export class User {
   count_follower?: number;
 
   count_following?: number;
+
+  followed_by?: string[];
 
   async isFollowing?(userTarget: User): Promise<FollowStatus> {
     const isFollowing = await getRepository(User)
@@ -189,6 +194,22 @@ export class User {
     return [usersFollowing, count];
   }
 
+  async getFollowing?(): Promise<number[]> {
+
+    let usersFollowing = await getRepository(User)
+    .createQueryBuilder('users')
+    .select(['users.id']) 
+    .leftJoin('users.following', 'relations')
+    .where('relations.user_id = :userId', { userId: this.id })
+    .andWhere('relations.is_follow = :follow', {
+      follow: FollowStatus.FOLLOW,
+    })
+    .getMany()
+
+    const idsUser = usersFollowing.map(users => users.id)
+    return idsUser
+  } 
+
   async getFollowerAndCountPagination?(
     pagination: Pagination,
   ): Promise<[User[], number]> {
@@ -202,12 +223,28 @@ export class User {
       .andWhere('relations.is_follow = :follow', {
         follow: FollowStatus.FOLLOW,
       })
-      .orderBy('relations.created_at', 'DESC')
       .addOrderBy('posts.created_at', 'DESC')
+      .orderBy('relations.created_at', 'DESC')
       .limit(take)
       .offset(skip)
       .getManyAndCount();
 
     return [usersFollower, count];
+  }
+
+  async getFollowedBy?(authUser: User): Promise<string[]> {
+    const users = await getRepository(User)
+    .createQueryBuilder('users')
+    .select(['users.user_name']) 
+    .leftJoin('users.follower', 'relations')
+    .where('relations.friend_id = :userId', { userId: this.id })
+    .andWhere('relations.is_follow = :follow', {
+      follow: FollowStatus.FOLLOW,
+    })
+    .andWhere('users.id IN (:...followingAuth)', { followingAuth: await authUser.getFollowing()})
+    .getMany()
+
+    const userNamesUser = users.map(user => user.user_name)
+    return userNamesUser
   }
 }

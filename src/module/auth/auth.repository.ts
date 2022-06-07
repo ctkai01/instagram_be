@@ -50,4 +50,20 @@ export class UserRepository extends Repository<User> {
       .getOne();
     return user;
   }
+
+  async getUserByUserNameOrFullname(search: string): Promise<User[]> {
+    const users = await this.createQueryBuilder('users')
+      .where('users.user_name  like :search', { search: `${search}%` })
+      .orWhere('users.name  like :search', { search: `${search}%` }).getMany()
+
+      return users
+  }
+
+  async getUserByUserNameOrFullnameHome(search: string): Promise<User[]> {
+    const users = await this.createQueryBuilder('users')
+      .where('users.user_name  like :search', { search: `%${search}%` })
+      .orWhere('users.name  like :search', { search: `%${search}%` }).getMany()
+
+      return users
+  }
 }

@@ -7,4 +7,7 @@ export const config = () => ({
   follow: {
     take: 12,
   },
+  search: {
+    take: 55
+  }
 });

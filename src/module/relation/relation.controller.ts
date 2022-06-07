@@ -8,6 +8,8 @@ import {
   UseFilters,
   UseGuards,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { TransformInterceptor } from 'src/custom-response/core.response';
 import { GetCurrentUser } from 'src/decorators';
@@ -26,6 +28,7 @@ export class RelationController {
 
   @Post('/follow/:id')
   @HttpCode(200)
+  @UsePipes(new ValidationPipe({ transform: true }))
   async followUser(
     @Param('id', ParseIntPipe) idUser: number,
     @GetCurrentUser() userAuth: User,
@@ -37,6 +40,7 @@ export class RelationController {
       userAuth,
       followUserDto,
     );
+
     return response;
     // if (response.getResponse) {
     //   return res

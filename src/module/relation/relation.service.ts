@@ -29,6 +29,7 @@ export class RelationService {
     const checkExistRelation = await this.relationRepository.findOne({
       where: { user_id: userAuth.id, friend_id: idUser },
     });
+
     if (checkExistRelation) {
       if (
         checkExistRelation.is_follow === FollowStatus.FOLLOW &&
@@ -73,7 +74,6 @@ export class RelationService {
         followUserDto.type,
       );
     }
-    console.log(relation);
     if (relation) {
       const responseData: ResponseData = {
         message:

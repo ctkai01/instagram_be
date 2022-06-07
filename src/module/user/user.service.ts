@@ -5,6 +5,8 @@ import { User } from 'src/entities/auth.entity';
 import { Pagination } from 'src/interface/pagination.interface';
 import { ResponseData } from 'src/interface/response.interface';
 import { UserRepository } from 'src/module/auth/auth.repository';
+import { UserHomeSearchCollection } from 'src/resource/user/user-home-search.collection';
+import { UserSearchCollection } from 'src/resource/user/user-search.collection';
 import { UserCollection } from 'src/resource/user/user.collection';
 import { UserResource } from 'src/resource/user/user.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
@@ -88,4 +90,34 @@ export class UserService {
 
     return responseData;
   }
+
+  async searchUserByUserNameAndFullName(search: string): Promise<ResponseData> {
+    const take = this.configService.get('search.take')
+    let users = await this.userRepository.getUserByUserNameOrFullname(search)
+    users = users.slice(0, take || 1)
+
+    const dataSearchUser = await UserSearchCollection(users);
+    const responseData: ResponseData = {
+      data: dataSearchUser,
+      message: 'Get Data Successfully',
+    };
+
+    return responseData;
+  }
+
+  async searchUserByUserNameAndFullNameHome(search: string, userAuth: User): Promise<ResponseData> {
+    const take = this.configService.get('search.take')
+    let users = await this.userRepository.getUserByUserNameOrFullnameHome(search)
+    users = users.slice(0, take || 1)
+
+    const dataSearchUser = await UserHomeSearchCollection(users, userAuth);
+
+    const responseData: ResponseData = {
+      data: dataSearchUser,
+      message: 'Get Data Successfully',
+    };
+
+    return responseData;
+  }
+  
 }
