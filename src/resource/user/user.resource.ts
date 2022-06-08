@@ -14,6 +14,7 @@ export const UserResource = async (
     is_following: await userAuth.isFollowing(data),
     count_follower: await data.countFollowerUser(),
     count_following: await data.countFollowingUser(),
+    followed_by: await data.getFollowedBy(userAuth)
   };
 
   delete dataTransform['refresh_token'];

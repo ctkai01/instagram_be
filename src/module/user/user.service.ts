@@ -78,8 +78,8 @@ export class UserService {
     return responseData;
   }
 
-  async profileUserById(userId: number, userAuth: User) {
-    const user = await this.userRepository.getUserByIdWithRelation(userId);
+  async profileUserByUserName(userName: string, userAuth: User) {
+    const user = await this.userRepository.getUserByUserNameWithRelation(userName);
     if (!user) {
       throw new InternalServerErrorException('User not found');
     }

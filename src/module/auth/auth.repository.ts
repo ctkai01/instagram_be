@@ -41,11 +41,12 @@ export class UserRepository extends Repository<User> {
     return user;
   }
 
-  async getUserByIdWithRelation(userId: number): Promise<User> {
+  async getUserByUserNameWithRelation(userName: string): Promise<User> {
     const user = await this.createQueryBuilder('users')
       .leftJoinAndSelect('users.posts', 'posts')
       .leftJoinAndSelect('posts.media', 'media')
-      .where('users.id = :userId', { userId: userId })
+      .leftJoinAndSelect('posts.user', 'user')
+      .where('users.user_name = :userName', { userName: userName })
       .orderBy('posts.created_at', 'DESC')
       .getOne();
     return user;

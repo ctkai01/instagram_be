@@ -52,12 +52,12 @@ export class UserController {
     return this.userService.listFollowerByUserId(idUser, page, userAuth);
   }
 
-  @Get('/:id')
+  @Get('/:userName')
   getProfileUser(
-    @Param('id', ParseIntPipe) idUser: number,
+    @Param('userName') userName: string,
     @GetCurrentUser() userAuth: User,
   ) {
-    return this.userService.profileUserById(idUser, userAuth);
+    return this.userService.profileUserByUserName(userName, userAuth);
   }
 
   @Get('')
