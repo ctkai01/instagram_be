@@ -1,18 +1,21 @@
-import { ResponseData } from 'src/interface/response.interface';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getRepository } from 'typeorm';
-import { RelationRepository } from './relation.repository';
-import { FollowUserDto } from './dto/follow-user-dto';
 import { FollowStatus } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Relation } from 'src/entities/relation.entity';
+import { ResponseData } from 'src/interface/response.interface';
+import { UserOnlyResource } from 'src/resource/user/user-only.resource';
+import { getRepository } from 'typeorm';
+import { UserRepository } from '../auth/auth.repository';
+import { FollowUserDto } from './dto/follow-user-dto';
+import { RelationRepository } from './relation.repository';
 
 @Injectable()
 export class RelationService {
   constructor(
     @InjectRepository(RelationRepository)
     private relationRepository: RelationRepository,
+    private authRepository: UserRepository
   ) {}
 
   async followUser(
@@ -61,25 +64,28 @@ export class RelationService {
       }
     }
 
-    let relation: Promise<Relation>;
+    let relation: Relation;
     if (!checkExistRelation && followUserDto.type === FollowStatus.FOLLOW) {
-      relation = this.relationRepository.createRelationFollow(
+      relation = await this.relationRepository.createRelationFollow(
         idUser,
         userAuth.id,
         userAuth.is_private,
       );
     } else if (checkExistRelation) {
-      relation = this.relationRepository.updateRelationFollow(
+      relation = await this.relationRepository.updateRelationFollow(
         checkExistRelation,
         followUserDto.type,
       );
     }
     if (relation) {
+      const userRelation = await this.authRepository.getUserById(idUser)
+      console.log(userRelation)
       const responseData: ResponseData = {
         message:
           followUserDto.type === FollowStatus.FOLLOW
             ? 'Follow user Successfully'
             : 'UnFollow user Successfully',
+            data: await UserOnlyResource(userRelation, userAuth)
       };
       return responseData;
     }

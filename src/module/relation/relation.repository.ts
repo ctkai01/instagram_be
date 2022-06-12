@@ -8,7 +8,7 @@ export class RelationRepository extends Repository<Relation> {
     idUser: number,
     idAuth: number,
     isPrivateUserAuth: PrivateStatus,
-  ) {
+  ): Promise<Relation> {
     const data: Relation = {
       user_id: idAuth,
       friend_id: idUser,
@@ -20,12 +20,10 @@ export class RelationRepository extends Repository<Relation> {
 
     const relation = this.create(data);
     const relationCreate = await this.save(relation);
-    console.log(relation);
     return relationCreate;
   }
 
-  async updateRelationFollow(relation: Relation, typeFollow: FollowStatus) {
-    console.log('Type', typeFollow);
+  async updateRelationFollow(relation: Relation, typeFollow: FollowStatus): Promise<Relation> {
     return await this.save({
       ...relation,
       is_follow: typeFollow,
