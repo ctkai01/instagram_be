@@ -7,6 +7,11 @@ export function paginateResponse(
   const lastPage = Math.ceil(total / take);
   const nextPage = page + 1 > lastPage ? null : page + 1;
   const prevPage = page - 1 < 1 ? null : page - 1;
+
+  if (page === lastPage && page !== 1) {
+    result.shift()
+  }
+
   return {
     data: [...result],
     count: total,

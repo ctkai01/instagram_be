@@ -118,7 +118,7 @@ export class PostService {
 
     let postsPaginate
     let count
-    if (!idsUserFollowing.length) {
+    if (idsUserFollowing.length === 1) {
       [postsPaginate, count] = new Post().getPostCountPaginate(
         posts,
         pagination,

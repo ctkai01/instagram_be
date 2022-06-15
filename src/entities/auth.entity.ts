@@ -181,16 +181,17 @@ export class User {
       .leftJoin('users.following', 'relations')
       .leftJoinAndSelect('users.posts', 'posts')
       .leftJoinAndSelect('posts.media', 'media')
+      // .leftJoinAndSelect('posts.user', 'user')
       .where('relations.user_id = :userId', { userId: this.id })
       .andWhere('relations.is_follow = :follow', {
         follow: FollowStatus.FOLLOW,
       })
-      .orderBy('relations.created_at', 'DESC')
       .addOrderBy('posts.created_at', 'DESC')
+      .orderBy('relations.created_at', 'ASC')
       .limit(take)
       .offset(skip)
       .getManyAndCount();
-
+    
     return [usersFollowing, count];
   }
 

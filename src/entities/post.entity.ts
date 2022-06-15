@@ -43,7 +43,7 @@ export class Post {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'created_by', referencedColumnName: 'id' })
-  user: User;
+  user?: User;
 
   @OneToMany(() => Media, (media) => media.post)
   media?: Media[];

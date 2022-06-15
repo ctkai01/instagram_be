@@ -5,6 +5,7 @@ import { User } from 'src/entities/auth.entity';
 import { Pagination } from 'src/interface/pagination.interface';
 import { ResponseData } from 'src/interface/response.interface';
 import { UserRepository } from 'src/module/auth/auth.repository';
+import { UserFollowCollection } from 'src/resource/user/user-follow.collection';
 import { UserHomeSearchCollection } from 'src/resource/user/user-home-search.collection';
 import { UserSearchCollection } from 'src/resource/user/user-search.collection';
 import { UserCollection } from 'src/resource/user/user.collection';
@@ -29,17 +30,19 @@ export class UserService {
       throw new InternalServerErrorException('User not found');
     }
 
-    const [take, page, skip] = calcPaginate(
+    let [take, page, skip] = calcPaginate(
       this.configService.get('follow.take'),
-      pageNumber,
+      +pageNumber,
     );
 
     const pagination: Pagination = {
       skip,
       take,
     };
+
     const [data, count] = await user.getFollowingAndCountPagination(pagination);
-    const dataFollowing = await UserCollection(data, userAuth);
+
+    const dataFollowing = await UserFollowCollection(data, userAuth);
     const responseData: ResponseData = {
       data: paginateResponse([dataFollowing, count], page, take),
       message: 'Get Data Successfully',
@@ -60,7 +63,7 @@ export class UserService {
 
     const [take, page, skip] = calcPaginate(
       this.configService.get('follow.take'),
-      pageNumber,
+      +pageNumber,
     );
 
     const pagination: Pagination = {
@@ -69,7 +72,7 @@ export class UserService {
     };
 
     const [data, count] = await user.getFollowerAndCountPagination(pagination);
-    const dataFollower = await UserCollection(data, userAuth);
+    const dataFollower = await UserFollowCollection(data, userAuth);
     const responseData: ResponseData = {
       data: paginateResponse([dataFollower, count], page, take),
       message: 'Get Data Successfully',
