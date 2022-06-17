@@ -41,6 +41,11 @@ export class UserRepository extends Repository<User> {
     return user;
   }
 
+  async getUserByUserName(userName: string): Promise<User> {
+    const user = (await this.find({ where: { user_name: userName}})).shift();
+    return user;
+  }
+
   async getUserByUserNameWithRelation(userName: string): Promise<User> {
     const user = await this.createQueryBuilder('users')
       .leftJoinAndSelect('users.posts', 'posts')

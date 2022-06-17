@@ -8,6 +8,7 @@ import { UserRepository } from 'src/module/auth/auth.repository';
 import { UserFollowCollection } from 'src/resource/user/user-follow.collection';
 import { UserHomeSearchCollection } from 'src/resource/user/user-home-search.collection';
 import { UserSearchCollection } from 'src/resource/user/user-search.collection';
+import { UserSimilarCollection } from 'src/resource/user/user-similar.collection';
 import { UserCollection } from 'src/resource/user/user.collection';
 import { UserResource } from 'src/resource/user/user.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
@@ -40,7 +41,16 @@ export class UserService {
       take,
     };
 
-    const [data, count] = await user.getFollowingAndCountPagination(pagination);
+    let [data, count] = await user.getFollowingAndCountPagination(pagination);
+
+    const checkIndexAuthUser = data.findIndex(user => user.id === userAuth.id)
+
+    if (checkIndexAuthUser != -1) {
+      const userAuthFollowing = data[checkIndexAuthUser]
+      data.splice(checkIndexAuthUser, 1);
+      data.unshift(userAuthFollowing);
+    }
+
 
     const dataFollowing = await UserFollowCollection(data, userAuth);
     const responseData: ResponseData = {
@@ -71,7 +81,17 @@ export class UserService {
       take,
     };
 
-    const [data, count] = await user.getFollowerAndCountPagination(pagination);
+
+    let [data, count] = await user.getFollowerAndCountPagination(pagination);
+
+    const checkIndexAuthUser = data.findIndex(user => user.id === userAuth.id)
+
+    if (checkIndexAuthUser != -1) {
+      const userAuthFollower = data[checkIndexAuthUser]
+      data.splice(checkIndexAuthUser, 1);
+      data.unshift(userAuthFollower);
+    }
+
     const dataFollower = await UserFollowCollection(data, userAuth);
     const responseData: ResponseData = {
       data: paginateResponse([dataFollower, count], page, take),
@@ -128,6 +148,26 @@ export class UserService {
 
     const responseData: ResponseData = {
       data: dataSearchUser,
+      message: 'Get Data Successfully',
+    };
+
+    return responseData;
+  }
+
+  async listSimilarByUsername(
+    userName: string,
+    userAuth: User,
+  ): Promise<ResponseData> {
+    const user = await this.userRepository.getUserByUserName(userName);
+    if (!user) {
+      throw new InternalServerErrorException('User not found');
+    }
+
+    let data = await user.getSimilarUsers(userAuth);
+
+    const dataUserSimilar = await UserSimilarCollection(data, userAuth);
+    const responseData: ResponseData = {
+      data: dataUserSimilar,
       message: 'Get Data Successfully',
     };
 

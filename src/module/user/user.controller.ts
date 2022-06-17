@@ -66,4 +66,12 @@ export class UserController {
   ): Promise<ResponseData> {
     return this.userService.searchUserByUserNameAndFullName(search);
   }
+
+  @Get('/:userName/similar_accounts')
+  getUsersSimilar(
+    @Param('userName') userName: string,
+    @GetCurrentUser() userAuth: User,
+  ): Promise<ResponseData> {
+    return this.userService.listSimilarByUsername(userName, userAuth);
+  }
 }

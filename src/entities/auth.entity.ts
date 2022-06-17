@@ -195,6 +195,29 @@ export class User {
     return [usersFollowing, count];
   }
 
+  async getSimilarUsers?(
+    userAuth: User
+  ): Promise<User[]> {
+    const [usersFollowing, idsUserAuthFollowing] = await Promise.all([
+     this.getFollowingUser(), 
+     userAuth.getFollowing()]
+    )
+
+    const idUserDeleted = new Set(idsUserAuthFollowing);
+
+    const usersSimilar = usersFollowing.filter(user => {
+      return !idUserDeleted.has(user.id)
+    })
+
+    const checkIndexAuthUser = usersSimilar.findIndex(user => user.id === userAuth.id)
+
+    if (checkIndexAuthUser != -1) {
+      usersSimilar.splice(checkIndexAuthUser, 1);
+    }
+    
+    return usersSimilar;
+  }
+
   async getFollowing?(): Promise<number[]> {
 
     let usersFollowing = await getRepository(User)
@@ -209,6 +232,20 @@ export class User {
 
     const idsUser = usersFollowing.map(users => users.id)
     return idsUser
+  } 
+
+  async getFollowingUser?(): Promise<User[]> {
+
+    let usersFollowing = await getRepository(User)
+    .createQueryBuilder('users')
+    .leftJoin('users.following', 'relations')
+    .where('relations.user_id = :userId', { userId: this.id })
+    .andWhere('relations.is_follow = :follow', {
+      follow: FollowStatus.FOLLOW,
+    })
+    .getMany()
+
+    return usersFollowing
   } 
 
   async getFollowerAndCountPagination?(
