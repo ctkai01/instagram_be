@@ -2,7 +2,7 @@ import { Module, Scope } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { MulterModule } from '@nestjs/platform-express';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmConnectionFactory, TypeOrmModule } from '@nestjs/typeorm';
 import moment from 'moment';
 import { AtGuard } from 'src/guards';
 import { AuthModule } from './module/auth/auth.module';
@@ -18,6 +18,7 @@ import { PostUser } from './entities/post-user.entity';
 import { Media } from './entities/media.entity';
 import { Post } from './entities/post.entity';
 import { Story } from './entities/story.entity';
+import { Connection, ConnectionOptions, getConnection } from 'typeorm';
 
 @Module({
   imports: [
@@ -33,6 +34,20 @@ import { Story } from './entities/story.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+      // connectionFactory: async (options?: ConnectionOptions): Promise<Connection> => {
+      //   return {
+      //     then(onfulfilled?, onrejected?) {
+      //       // onfulfilled(
+      //       //   getConnection()
+      //       // })
+      //       onrejected((value: any) => {
+      //         console.log('Value', value)
+      //         getConnection(options.synchronize).connect()
+      //       })
+      //     },
+      //   }
+      // }
+      // ,
       useFactory: async (configService: ConfigService) => {
         return {
           type: 'mysql',
@@ -44,6 +59,8 @@ import { Story } from './entities/story.entity';
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_DATABASE'),
           logging: true,
+          keepConnectionAlive: true,
+          // retryAttempts: true,
           entities: [User, Relation, PostUser, Media, Post, Story],
         };
       },

@@ -12,6 +12,8 @@ import { Post } from 'src/entities/post.entity';
 import { Pagination } from 'src/interface/pagination.interface';
 import { ResponseData } from 'src/interface/response.interface';
 import { PostHomeCollection } from 'src/resource/post/post-home.collection';
+import { PostHomeResource } from 'src/resource/post/post-home.resource';
+import { PostReactResource } from 'src/resource/post/post-react.resource';
 import { PostCollection } from 'src/resource/post/post.collection';
 import { PostResource } from 'src/resource/post/post.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
@@ -171,9 +173,11 @@ export class PostService {
       actionPostDto.type,
       postUser,
     );
+    const postUpdate = await this.postRepository.getPostById(idPost);
 
     if (result) {
       const responseData: ResponseData = {
+        data: await PostReactResource(postUpdate, userAuth),
         message:
           actionPostDto.type === ActiveStatus.ACTIVE
             ? 'Like post Successfully'

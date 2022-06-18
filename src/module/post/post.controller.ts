@@ -119,6 +119,7 @@ export class PostController {
 
   @Post('/:id/react')
   @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true }))
   async reactPost(
     @GetCurrentUser() userAuth: User,
     @Param('id', ParseIntPipe) idPost: number,

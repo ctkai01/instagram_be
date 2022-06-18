@@ -34,6 +34,14 @@ export class UserController {
     );
   }
 
+  @Get('/check-has-following')
+  checkHasFollowing(
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.userService.checkHasFollowing(userAuth);
+  }
+
+
   @Get('/suggest-for-you')
   getUsersSuggestForYou(
     @Query('count') count: number,

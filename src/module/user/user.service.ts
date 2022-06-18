@@ -191,4 +191,19 @@ export class UserService {
 
     return responseData;
   }
+
+  async checkHasFollowing(
+    userAuth: User,
+  ): Promise<ResponseData> {
+
+    let checkHasFollowing = await userAuth.countFollowingUser()
+
+
+    const responseData: ResponseData = {
+      data: !!checkHasFollowing,
+      message: 'Get Data Successfully',
+    };
+
+    return responseData;
+  }
 }

@@ -1,16 +1,16 @@
 import { User } from 'src/entities/auth.entity';
 import { Post } from 'src/entities/post.entity';
-import { MediaCollection } from '../media/media.collection';
-import { UserHomeResource } from '../user/user-home.resource';
 
-export const PostHomeResource = async (
+export const PostReactResource = async (
   data: Post,
   userAuth: User,
 ): Promise<Post> => {
   const dataTransform: Post = {
-    ...data,
-    created_by: await UserHomeResource(data.user, userAuth),
-    media: MediaCollection(data.media),
+    id: data.id,
+    location: data.location,
+    caption: data.caption,
+    is_off_comment: data.is_off_comment,
+    is_hide_like_view: data.is_hide_like_view,
     like_count: await data.getCountLike(),
     is_like: await data.isLike(userAuth),
   };
