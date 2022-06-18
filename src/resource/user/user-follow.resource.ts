@@ -5,11 +5,12 @@ import { PostCollection } from '../post/post.collection';
 export const UserFollowResource = async (
   data: User,
   userAuth: User,
+  reversePost: boolean
 ): Promise<User> => {
   let name = 'http://localhost:5000/' + data.avatar.split('\\').join('/');
   name = name.replace('/public', '');
-
-  const postTransform = data.posts.slice(0,3)
+  
+  const postTransform = reversePost ? data.posts.reverse().slice(0,3) : data.posts.slice(0,3)
   const dataTransform: User = {
     ...data,
     posts: await PostFollowCollection(postTransform, userAuth),

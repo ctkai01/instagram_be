@@ -33,7 +33,7 @@ export class PostService {
     userAuth: User,
     fileUpload: Array<Express.Multer.File>,
     filesNameUploadTrim: string[],
-    filesCover:  Array<Express.Multer.File>
+    filesCover: Array<Express.Multer.File>,
   ): Promise<any> {
     const post = await this.postRepository.createPost(
       createPostDto,
@@ -94,7 +94,7 @@ export class PostService {
 
   async getPost(userAuth: User, pageNumber: number): Promise<any> {
     let idsUserFollowing = await userAuth.getFollowing();
-    idsUserFollowing.push(userAuth.id)
+    idsUserFollowing.push(userAuth.id);
     const posts = (await this.postRepository.getAllPost()).sort(function (
       postA,
       postB,
@@ -116,19 +116,23 @@ export class PostService {
       take,
     };
 
-    let postsPaginate
-    let count
+    let postsPaginate;
+    let count;
     if (idsUserFollowing.length === 1) {
+      const postsShow = posts.filter((post: Post) =>
+      post.created_by === userAuth.id,
+    );
+
       [postsPaginate, count] = new Post().getPostCountPaginate(
-        posts,
+        postsShow,
         pagination,
       );
     } else {
-      const postsShow = posts.filter(
-        (post: Post) => idsUserFollowing.includes(post.created_by as number),
+      const postsShow = posts.filter((post: Post) =>
+        idsUserFollowing.includes(post.created_by as number),
       );
-  
-       [postsPaginate, count] = new Post().getPostCountPaginate(
+
+      [postsPaginate, count] = new Post().getPostCountPaginate(
         postsShow,
         pagination,
       );

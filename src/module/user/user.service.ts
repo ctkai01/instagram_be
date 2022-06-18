@@ -173,4 +173,22 @@ export class UserService {
 
     return responseData;
   }
+
+  async listUsersSuggestForYou(
+    userAuth: User,
+    count: number
+  ): Promise<ResponseData> {
+
+    let userSuggest = await this.userRepository.getUserSuggestForYou(userAuth, count);
+
+    // console.log(userSuggest)
+    const dataSuggest = await UserFollowCollection(userSuggest, userAuth, true);
+
+    const responseData: ResponseData = {
+      data: dataSuggest,
+      message: 'Get Data Successfully',
+    };
+
+    return responseData;
+  }
 }

@@ -1,9 +1,10 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, In, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user-dto';
 import { ConflictException } from '@nestjs/common';
 import { defaultAvatar } from 'src/untils/until';
 import { User } from 'src/entities/auth.entity';
-
+import _ = require('lodash');
+import { take } from 'lodash';
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -42,7 +43,7 @@ export class UserRepository extends Repository<User> {
   }
 
   async getUserByUserName(userName: string): Promise<User> {
-    const user = (await this.find({ where: { user_name: userName}})).shift();
+    const user = (await this.find({ where: { user_name: userName } })).shift();
     return user;
   }
 
@@ -60,16 +61,85 @@ export class UserRepository extends Repository<User> {
   async getUserByUserNameOrFullname(search: string): Promise<User[]> {
     const users = await this.createQueryBuilder('users')
       .where('users.user_name  like :search', { search: `${search}%` })
-      .orWhere('users.name  like :search', { search: `${search}%` }).getMany()
+      .orWhere('users.name  like :search', { search: `${search}%` })
+      .getMany();
 
-      return users
+    return users;
   }
 
   async getUserByUserNameOrFullnameHome(search: string): Promise<User[]> {
     const users = await this.createQueryBuilder('users')
       .where('users.user_name  like :search', { search: `%${search}%` })
-      .orWhere('users.name  like :search', { search: `%${search}%` }).getMany()
+      .orWhere('users.name  like :search', { search: `%${search}%` })
+      .getMany();
 
-      return users
+    return users;
+  }
+
+  async getUserSuggestForYou(userAuth: User, count: number): Promise<User[]> {
+    const checkHasFollowing = await userAuth.getFollowingUser();
+
+    if (checkHasFollowing.length) {
+      const users = await Promise.all(
+        checkHasFollowing.map(async (user: User): Promise<User[]> => {
+          return user.getFollowingUserRelation();
+        }),
+      );
+      // console.log('Lodash', _)
+      const userFlatten = _.flattenDeep(users);
+      const userUnique = _.uniq(userFlatten);
+
+      const idsUserFollowing = await userAuth.getFollowing();
+      idsUserFollowing.push(userAuth.id);
+      const idsToDeleteSet = new Set(idsUserFollowing);
+
+      let results = userUnique.filter((user) => {
+        return !idsToDeleteSet.has(user.id);
+      });
+
+      if (results.length < count) {
+        let idResultUsers = results.map((user) => user.id);
+        idResultUsers = idResultUsers.concat(idsUserFollowing);
+        const countRemain = count - results.length;
+
+        // const t = await this.find({
+        //   where: {
+        //     id: Not(In(idResultUsers)),
+        //   },
+        //   relations: ['posts', 'posts.media'],
+        //   take:countRemain
+        //   // order: {
+        //   //   posts: 'DESC'
+        //   // }
+        // });
+        // console.log('FUck', t);
+        const users = await this.createQueryBuilder('users')
+          .leftJoinAndSelect('users.posts', 'posts')
+          .leftJoinAndSelect('posts.media', 'media')
+          .where('users.id NOT IN (:...roles)')
+          .setParameter('roles', [...idResultUsers])
+          .take(countRemain)
+          .getMany();
+
+        results = results.concat(users);
+      }
+
+      results = results.splice(0, count);
+
+   
+      return results.splice(0, count);
+    } else {
+      const users = await this.createQueryBuilder('users')
+        .leftJoinAndSelect('users.posts', 'posts')
+        .leftJoinAndSelect('posts.media', 'media')
+        .where('users.id != :userId', { userId: userAuth.id })
+        .take(count)
+        .getMany();
+
+      return users;
+    }
+
+    // .where('users.user_name  like :search', { search: `%${search}%` })
+    // .orWhere('users.name  like :search', { search: `%${search}%` }).getMany()
   }
 }

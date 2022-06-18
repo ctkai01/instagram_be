@@ -34,6 +34,14 @@ export class UserController {
     );
   }
 
+  @Get('/suggest-for-you')
+  getUsersSuggestForYou(
+    @Query('count') count: number,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.userService.listUsersSuggestForYou(userAuth, count);
+  }
+
   @Get('/:id/following')
   getFollowingByIdUser(
     @Param('id') idUser: number,
