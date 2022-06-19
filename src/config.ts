@@ -9,5 +9,8 @@ export const config = () => ({
   },
   search: {
     take: 55
+  },
+  comment: {
+    take: 20
   }
 });

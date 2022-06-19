@@ -45,7 +45,7 @@ export class User {
   avatar: string;
 
   @Exclude()
-  @Column({ nullable: false, select: false })
+  @Column({ nullable: false })
   password?: string;
 
   @Column({ nullable: true })
@@ -55,7 +55,7 @@ export class User {
   bio?: string;
 
   @Exclude()
-  @Column({ nullable: true, type: 'longtext', select: false })
+  @Column({ nullable: true, type: 'longtext' })
   refresh_token?: string;
 
   @Column({ nullable: true })

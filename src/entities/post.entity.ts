@@ -33,7 +33,7 @@ export class Post {
 
   @Column({ default: ActiveStatus.NO_ACTIVE })
   is_hide_like_view?: ActiveStatus;
-  
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
 
@@ -55,7 +55,6 @@ export class Post {
   @OneToMany(() => Comment, (comment) => comment.post)
   comments?: Comment[];
 
-
   getPostCountPaginate?(
     data: Post[],
     pagination: Pagination,
@@ -69,6 +68,7 @@ export class Post {
 
   like_count?: number;
   is_like?: ActiveStatus;
+  comment_count?: number;
 
   async getCountLike?(): Promise<number> {
     const countUserLike = await getRepository(User)
@@ -80,6 +80,14 @@ export class Post {
       })
       .getCount();
     return countUserLike;
+  }
+
+  async getCountComment?(): Promise<number> {
+    const countComment = (await getRepository(Comment).find({
+      where: { post_id: this.id },
+    })).length;
+
+    return countComment;
   }
 
   async isLike?(userAuth: User): Promise<ActiveStatus> {

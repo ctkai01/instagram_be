@@ -1,10 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
-  Post, UseFilters,
+  Post, Query, UseFilters,
   UseGuards,
   UseInterceptors,
   UsePipes,
@@ -16,6 +17,7 @@ import { User } from 'src/entities/auth.entity';
 import { HttpExceptionValidateFilter } from 'src/filter/http-exception.filter';
 import { AtGuard } from 'src/guards';
 import { CommentService } from './comment.service';
+import { ActionCommentDto } from './dto/action-comment-dto';
 import { CreateCommentDto } from './dto/create-comment-dto';
 
 @Controller('comments')
@@ -38,17 +40,27 @@ export class CommentController {
   commentByPostId(
     @Param('id', ParseIntPipe) idPost: number,
     @GetCurrentUser() userAuth: User,
+    @Query('page') page: number,
   ) {
-    return this.commentService.getCommentByPost(idPost, userAuth)
+    return this.commentService.getCommentByPost(idPost, userAuth, page)
   }
 
-  // @Get('/:id')
-  // getStory(@Param('id', ParseIntPipe) idStory: number) {
-  //   return this.storyService.getStory(idStory);
-  // }
+  @Delete('/:id')
+  deletePost(
+    @Param('id', ParseIntPipe) id: number,
+    @GetCurrentUser() userAuth: User,
 
-  // @Get('user/:id')
-  // getStoryByIdUser(@Param('id', ParseIntPipe) idUser: number) {
-  //   return this.storyService.getStoryByIdUser(idUser);
-  // }
+  ) {
+    return this.commentService.deleteComment(id, userAuth);
+  }
+
+  @Post('/:id/react')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async reactPost(
+    @GetCurrentUser() userAuth: User,
+    @Param('id', ParseIntPipe) idComment: number,
+    @Body() actionCommentDto: ActionCommentDto,
+  ) {
+    return this.commentService.reactComment(idComment, actionCommentDto, userAuth);
+  }
 }

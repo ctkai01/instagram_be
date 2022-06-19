@@ -42,7 +42,7 @@ export class AuthService {
       where: [{ user_name: account }, { phone: account }, { email: account }],
     });
     let checkPass = false;
-
+    console.log(password, user.password)
     if (user) {
       checkPass = bcrypt.compareSync(password, user.password);
     }

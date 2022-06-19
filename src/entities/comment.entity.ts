@@ -1,6 +1,8 @@
+import { ActiveStatus } from 'src/constants';
 import {
   Column,
   Entity,
+  getRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -56,4 +58,62 @@ export class Comment {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
+
+  like_count?: number;
+  is_like?: ActiveStatus;
+
+  async getCountLike?(): Promise<number> {
+    const countUserLike = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.commentUsers', 'comment_users')
+      .where('comment_users.comment_id = :commentId', { commentId: this.id })
+      .andWhere('comment_users.is_like = :like', {
+        like: ActiveStatus.ACTIVE,
+      })
+      .getCount();
+    return countUserLike;
+  }
+
+  async isLike?(userAuth: User): Promise<ActiveStatus> {
+    const isLike = await getRepository(User)
+      .createQueryBuilder('users')
+      .leftJoin('users.commentUsers', 'comment_users')
+      .where('comment_users.comment_id = :commentId', { commentId: this.id })
+      .andWhere('comment_users.user_id = :userId', { userId: userAuth.id })
+      .andWhere('comment_users.is_like = :like', {
+        like: ActiveStatus.ACTIVE,
+      })
+      .getCount();
+    return isLike;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // async subComments?(): Promise<Comment[]> {
+  //   const comments = await getRepository(Comment)
+  //     .createQueryBuilder('comments')
+  //     .leftJoinAndSelect('comments.user', 'users')
+  //     .leftJoinAndSelect('comments.post', 'posts')
+  //     .leftJoinAndSelect('users.posts', 'postsUser')
+  //     .leftJoinAndSelect('postsUser.media', 'media')
+  //     .where('comments.parent_id = :commentId', { commentId: this.id })
+  //     .getMany()
+  //     // .where('comments.id IN (:...idComments)')
+  //     // .setParameter('idComments', [...idResultUsers])
+  //     return comments
+  //   // return 
+  // }
+
 }
