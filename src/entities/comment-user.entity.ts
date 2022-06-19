@@ -7,10 +7,11 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './auth.entity';
+import { Comment } from './comment.entity';
 import { Post } from './post.entity';
 
-@Entity({ name: 'post_user' })
-export class PostUser {
+@Entity({ name: 'comment_user' })
+export class CommentUser {
   @PrimaryGeneratedColumn('increment')
   id?: number;
 
@@ -18,7 +19,7 @@ export class PostUser {
   user_id: number;
 
   @Column()
-  post_id: number;
+  comment_id: number;
 
   @Column()
   is_like: ActiveStatus;
@@ -29,13 +30,14 @@ export class PostUser {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
 
-  @ManyToOne(() => Post, (post) => post.usersPost, {
+  @ManyToOne(() => Comment, (comment) => comment.userComments, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'post_id' })
-  post: Post;
+  @JoinColumn({ name: 'comment_id' })
+  comment: Comment;
 
-  @ManyToOne(() => User, (user) => user.postUsers, {
+
+  @ManyToOne(() => User, (user) => user.commentUsers, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })

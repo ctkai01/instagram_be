@@ -19,6 +19,9 @@ import { Media } from './entities/media.entity';
 import { Post } from './entities/post.entity';
 import { Story } from './entities/story.entity';
 import { Connection, ConnectionOptions, getConnection } from 'typeorm';
+import { Comment } from './entities/comment.entity';
+import { CommentUser } from './entities/comment-user.entity';
+import { CommentModule } from './module/comment/comment.module';
 
 @Module({
   imports: [
@@ -61,7 +64,7 @@ import { Connection, ConnectionOptions, getConnection } from 'typeorm';
           logging: true,
           keepConnectionAlive: true,
           // retryAttempts: true,
-          entities: [User, Relation, PostUser, Media, Post, Story],
+          entities: [User, Relation, PostUser, Media, Post, Story, Comment, CommentUser],
         };
       },
     }),
@@ -71,6 +74,7 @@ import { Connection, ConnectionOptions, getConnection } from 'typeorm';
     RelationModule,
     UserModule,
     StoryModule,
+    CommentModule
   ],
   providers: [
     {

@@ -17,6 +17,8 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { CommentUser } from './comment-user.entity';
+import { Comment } from './comment.entity';
 import { PostUser } from './post-user.entity';
 import { Post } from './post.entity';
 import { Relation } from './relation.entity';
@@ -43,7 +45,7 @@ export class User {
   avatar: string;
 
   @Exclude()
-  @Column({ nullable: false })
+  @Column({ nullable: false, select: false })
   password?: string;
 
   @Column({ nullable: true })
@@ -53,7 +55,7 @@ export class User {
   bio?: string;
 
   @Exclude()
-  @Column({ nullable: true, type: 'longtext' })
+  @Column({ nullable: true, type: 'longtext', select: false })
   refresh_token?: string;
 
   @Column({ nullable: true })
@@ -97,6 +99,12 @@ export class User {
 
   @OneToMany(() => PostUser, (postUser) => postUser.user)
   postUsers?: PostUser[];
+
+  @OneToMany(() => CommentUser, (commentUser) => commentUser.user)
+  commentUsers?: CommentUser[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments?: Comment[];
 
   is_following?: FollowStatus;
 

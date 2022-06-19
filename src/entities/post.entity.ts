@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './auth.entity';
+import { Comment } from './comment.entity';
 import { Media } from './media.entity';
 import { PostUser } from './post-user.entity';
 
@@ -50,6 +51,10 @@ export class Post {
 
   @OneToMany(() => PostUser, (postUser) => postUser.post)
   usersPost?: PostUser[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments?: Comment[];
+
 
   getPostCountPaginate?(
     data: Post[],
