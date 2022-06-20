@@ -56,7 +56,8 @@ export class CommentService {
       userCreated,
       post,
     );
-    console.log(comment);
+
+    comment.childComments = []
     const responseData: ResponseData = {
       data: await CommentResource(comment, userAuth),
       message: 'Create comment Successfully!',

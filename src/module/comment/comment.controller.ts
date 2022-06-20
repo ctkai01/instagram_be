@@ -28,7 +28,7 @@ export class CommentController {
   constructor(private commentService: CommentService) {}
   @Post('/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
-  createStory(
+  createComment(
     @Param('id', ParseIntPipe) idPost: number,
     @GetCurrentUser() userAuth: User,
     @Body() createCommentDto: CreateCommentDto,
