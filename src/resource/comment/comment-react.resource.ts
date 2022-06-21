@@ -9,6 +9,7 @@ export const CommentReactResource = async (
   const dataTransform: Comment = {
     id: data.id,
     content: data.content,
+    parent_id: data.parent_id,
     like_count: await data.getCountLike(),
     is_like: await data.isLike(userAuth),
   };
