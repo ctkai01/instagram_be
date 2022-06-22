@@ -14,11 +14,17 @@ import {
   Column,
   Entity,
   getRepository,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+// import { ChatMember } from './chat-member.entity';
 import { CommentUser } from './comment-user.entity';
 import { Comment } from './comment.entity';
+import { Conversation } from './conversation.entity';
+import { Message } from './message.entity';
+// import { MessageUser } from './message-user.entity';
+// import { Message } from './messages.entity';
 import { PostUser } from './post-user.entity';
 import { Post } from './post.entity';
 import { Relation } from './relation.entity';
@@ -105,6 +111,23 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.user)
   comments?: Comment[];
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages?: Message[];
+
+  @ManyToMany(
+    () => Conversation,
+    (conversation) => conversation.users,
+  )
+  conversations?: Conversation[];
+  // @OneToMany(() => ChatMember, (chatMember) => chatMember.user)
+  // chatMemberUsers?: ChatMember[];
+
+  // @OneToMany(() => Message, (message) => message.user)
+  // messages?: Message[];
+
+  // @OneToMany(() => MessageUser, (messagesUser) => messagesUser.user)
+  // messageUser?: MessageUser[];
 
   is_following?: FollowStatus;
 

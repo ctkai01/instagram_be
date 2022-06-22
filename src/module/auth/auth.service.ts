@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
+import { from, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { User } from 'src/entities/auth.entity';
 import { UserLoginResource } from 'src/resource/user/user-login.resource';
 import { ResponseData } from '../../interface/response.interface';
@@ -128,5 +130,16 @@ export class AuthService {
     user.refresh_token = hashRf;
 
     await this.userRepository.save(user);
+  }
+
+  getJwtUser(jwt: string): Observable<User | null> {
+    return from(this.jwtService.verifyAsync(jwt)).pipe(
+      map(({ user }: { user: User }) => {
+        return user;
+      }),
+      catchError(() => {
+        return of(null);
+      }),
+    );
   }
 }

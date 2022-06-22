@@ -22,6 +22,10 @@ import { Connection, ConnectionOptions, getConnection } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { CommentUser } from './entities/comment-user.entity';
 import { CommentModule } from './module/comment/comment.module';
+import { ChatModule } from './module/chat/chat.module';
+import { ActiveConversation } from './entities/active-conversation.entity';
+import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
 
 @Module({
   imports: [
@@ -64,7 +68,23 @@ import { CommentModule } from './module/comment/comment.module';
           logging: true,
           keepConnectionAlive: true,
           // retryAttempts: true,
-          entities: [User, Relation, PostUser, Media, Post, Story, Comment, CommentUser],
+          entities: [
+            User,
+            Relation,
+            PostUser,
+            Media,
+            Post,
+            Story,
+            Comment,
+            CommentUser,
+            ActiveConversation,
+            Conversation,
+            Message
+            // ChatMember,
+            // ChatTopic,
+            // MessageUser,
+            // Message,
+          ],
         };
       },
     }),
@@ -74,7 +94,8 @@ import { CommentModule } from './module/comment/comment.module';
     RelationModule,
     UserModule,
     StoryModule,
-    CommentModule
+    CommentModule,
+    ChatModule,
   ],
   providers: [
     {
