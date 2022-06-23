@@ -17,6 +17,8 @@ import { Conversation } from 'src/entities/conversation.entity';
 import { Message } from 'src/entities/message.entity';
 import { AtGuard } from 'src/guards';
 import { ConversationCollection } from 'src/resource/conversation/conversation.collection';
+import { MessageCollection } from 'src/resource/message/message.collection';
+import { MessageResource } from 'src/resource/message/message.resource';
 import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
 
@@ -37,7 +39,7 @@ export class ChatGateway
   server: Server;
   private logger: Logger = new Logger('Events Gateway');
 
-  @UseGuards(AtGuard) 
+  @UseGuards(AtGuard)
   async handleConnection(socket: Socket) {
     this.logger.log(`socket connect: ${socket.id}`);
 
@@ -71,8 +73,11 @@ export class ChatGateway
     const conversations = await this.chatService.getConversationsWithUsers(
       userId,
     );
-    console.log(conversations)
-    const conversationsTransform = ConversationCollection(conversations, socket.data.user.id)
+    console.log(conversations);
+    const conversationsTransform = ConversationCollection(
+      conversations,
+      socket.data.user.id,
+    );
     this.server.to(socket.id).emit('conversations', conversationsTransform);
 
     // .subscribe((conversations) => {
@@ -120,12 +125,12 @@ export class ChatGateway
             .getActiveUsers(newMessage.conversation.id)
             .pipe(take(1))
             .subscribe((activeConversations: ActiveConversation[]) => {
-              console.log('ACTive')
               activeConversations.forEach(
                 (activeConversation: ActiveConversation) => {
+                  const transFormMessage = MessageResource(newMessage)
                   this.server
                     .to(activeConversation.socketId)
-                    .emit('newMessage', newMessage);
+                    .emit('newMessage', transFormMessage);
                 },
               );
             });
@@ -143,7 +148,8 @@ export class ChatGateway
             .getMessages(activeConversation.conversationId)
             .pipe(take(1))
             .subscribe((messages: Message[]) => {
-              this.server.to(socket.id).emit('messages', messages);
+              const messageTransform = MessageCollection(messages) 
+              this.server.to(socket.id).emit('messages', messageTransform);
             });
         }),
       )
