@@ -6,7 +6,9 @@ import * as bcrypt from 'bcryptjs';
 import { from, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { User } from 'src/entities/auth.entity';
+import { JWTPayload } from 'src/interface/jwt.payload';
 import { UserLoginResource } from 'src/resource/user/user-login.resource';
+import { getRepository } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { UserRepository } from './auth.repository';
 import { CreateUserDto } from './dto/create-user-dto';
@@ -44,7 +46,6 @@ export class AuthService {
       where: [{ user_name: account }, { phone: account }, { email: account }],
     });
     let checkPass = false;
-    console.log(password, user.password)
     if (user) {
       checkPass = bcrypt.compareSync(password, user.password);
     }
@@ -132,14 +133,33 @@ export class AuthService {
     await this.userRepository.save(user);
   }
 
-  getJwtUser(jwt: string): Observable<User | null> {
-    return from(this.jwtService.verifyAsync(jwt)).pipe(
-      map(({ user }: { user: User }) => {
-        return user;
+  getJwtUser(jwt: string):Observable<Promise<User> | null> {
+    // console.log(jwt)
+    // console.log('FFF', this.jwtService.verifyAsync(jwt, {
+    //   secret: this.config.get('JWT_SECRET')
+    // }))
+    return from(this.jwtService.verifyAsync(jwt, {
+      secret: this.config.get('JWT_SECRET')
+    }))
+    .pipe(
+      map(async (payload : JWTPayload) => {
+        const useAuth = await getRepository(User).findOne({
+          where: [{ id: payload.sub }],
+        });
+        // console.log('FUCK YOU',user)
+        return useAuth;
       }),
       catchError(() => {
         return of(null);
       }),
     );
-  }
+  } 
+
+  // async getJwtUser(jwt: string): Promise<User | undefined> {
+  //   console.log('154',jwt)
+  //   return  await this.jwtService.verifyAsync(jwt, {
+  //     secret: this.config.get('JWT_SECRET')
+  //   })
+   
+  // }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { flattenDeep } from 'lodash';
 import { from, map, mergeMap, Observable, of, switchMap, take } from 'rxjs';
 import { ActiveConversation } from 'src/entities/active-conversation.entity';
 import { User } from 'src/entities/auth.entity';
@@ -34,36 +35,86 @@ export class ChatService {
     ).pipe(map((conversation: Conversation) => conversation || undefined));
   }
   
-  getConversationsForUser(userId: number): Observable<Conversation[]> {
-    return from(
+  // getConversationsForUser(userId: number): Observable<Conversation[]> {
+  //   return from(
+  //     this.conversationRepository
+  //       .createQueryBuilder('conversation')
+  //       .leftJoin('conversation.users', 'user')
+  //       .where('user.id = :userId', { userId })
+  //       // .orderBy('conversation.lastUpdated', 'DESC')
+  //       .getMany(),
+  //   );
+  // }
+
+  // getUsersInConversation(conversationId: number): Observable<Conversation[]> {
+  //   console.log('RUNING 222')
+    
+  //   return from(
+  //     this.conversationRepository
+  //       .createQueryBuilder('conversation')
+  //       .innerJoinAndSelect('conversation.users', 'user')
+  //       .where('conversation.id = :conversationId', { conversationId })
+  //       .getMany(),
+  //   );
+  // }
+
+
+  // getConversationsWithUsers(userId: number): Observable<Conversation[]> {
+  //   console.log('RUNING')
+  //   return this.getConversationsForUser(userId).pipe(
+  //     take(1),
+  //     switchMap((conversations: Conversation[]) => {
+  //       console.log('RV', conversations)
+  //       return conversations
+  //     }),
+  //     mergeMap((conversation: Conversation) => {
+  //       return this.getUsersInConversation(conversation.id);
+  //     }),
+  //   );
+  // }
+    
+  async getConversationsForUser(userId: number): Promise<Conversation[]> {
+    return await
       this.conversationRepository
         .createQueryBuilder('conversation')
         .leftJoin('conversation.users', 'user')
+        .leftJoin('conversation.messages', 'message')
         .where('user.id = :userId', { userId })
         // .orderBy('conversation.lastUpdated', 'DESC')
-        .getMany(),
-    );
+        .getMany()
   }
 
-  getUsersInConversation(conversationId: number): Observable<Conversation[]> {
-    return from(
+  async getUsersInConversation(conversationId: number): Promise<Conversation[]> {
+    
+    return await 
       this.conversationRepository
         .createQueryBuilder('conversation')
         .innerJoinAndSelect('conversation.users', 'user')
+        .innerJoinAndSelect('conversation.messages', 'message')
+        .innerJoinAndSelect('message.user', 'userMess')
         .where('conversation.id = :conversationId', { conversationId })
-        .getMany(),
-    );
+        .orderBy('message.created_at', 'ASC')
+        .getMany()
   }
 
+  async getConversationsWithUsers(userId: number): Promise<Conversation[]> {
+    console.log('RUNING')
+    const conversationsUser = await this.getConversationsForUser(userId)
+    const usersInConversation = await Promise.all(conversationsUser.map(async (conversation) => await this.getUsersInConversation(conversation.id)))
+    const usersInConversationFlat = flattenDeep(usersInConversation)
 
-  getConversationsWithUsers(userId: number): Observable<Conversation[]> {
-    return this.getConversationsForUser(userId).pipe(
-      take(1),
-      switchMap((conversations: Conversation[]) => conversations),
-      mergeMap((conversation: Conversation) => {
-        return this.getUsersInConversation(conversation.id);
-      }),
-    );
+    return usersInConversationFlat
+   
+    // return this.getConversationsForUser(userId).pipe(
+    //   take(1),
+    //   switchMap((conversations: Conversation[]) => {
+    //     console.log('RV', conversations)
+    //     return conversations
+    //   }),
+    //   mergeMap((conversation: Conversation) => {
+    //     // return this.getUsersInConversation(conversation.id);
+    //   }),
+    // );
   }
 
   leaveConversation(socketId: string): Observable<DeleteResult> {
@@ -149,7 +200,7 @@ export class ChatService {
         .createQueryBuilder('message')
         .innerJoinAndSelect('message.user', 'user')
         .where('message.conversation.id =:conversationId', { conversationId })
-        .orderBy('message.createdAt', 'ASC')
+        .orderBy('message.created_at', 'ASC')
         .getMany(),
     );
   }

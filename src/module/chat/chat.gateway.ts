@@ -16,6 +16,7 @@ import { User } from 'src/entities/auth.entity';
 import { Conversation } from 'src/entities/conversation.entity';
 import { Message } from 'src/entities/message.entity';
 import { AtGuard } from 'src/guards';
+import { ConversationCollection } from 'src/resource/conversation/conversation.collection';
 import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
 
@@ -36,27 +37,50 @@ export class ChatGateway
   server: Server;
   private logger: Logger = new Logger('Events Gateway');
 
-  @UseGuards(AtGuard)
-  handleConnection(socket: Socket) {
-    console.log('HANDLE CONNECTION');
+  @UseGuards(AtGuard) 
+  async handleConnection(socket: Socket) {
+    this.logger.log(`socket connect: ${socket.id}`);
+
     const jwt = socket.handshake.headers.authorization || null;
-    this.authService.getJwtUser(jwt).subscribe((user: User) => {
-      if (!user) {
+    this.logger.log(`JWT: ${jwt}`);
+    // console.log(' JWT', socket.handshake)
+    // const user = await this.authService.getJwtUser(jwt);
+    // if (!user) {
+    //   console.log('No USER');
+    //   this.handleDisconnect(socket);
+    // } else {
+    //   socket.data.user = user;
+    //   this.getConversations(socket, user.id);
+    // }
+
+    this.authService.getJwtUser(jwt).subscribe(async (user: Promise<User>) => {
+      const userAuth = await user;
+      if (!userAuth) {
         console.log('No USER');
         this.handleDisconnect(socket);
       } else {
-        socket.data.user = user;
-        this.getConversations(socket, user.id);
+        socket.data.user = userAuth;
+        console.log(userAuth);
+
+        this.getConversations(socket, userAuth.id);
       }
     });
   }
 
-  getConversations(socket: Socket, userId: number): Subscription {
-    return this.chatService
-      .getConversationsWithUsers(userId)
-      .subscribe((conversations) => {
-        this.server.to(socket.id).emit('conversations', conversations);
-      });
+  async getConversations(socket: Socket, userId: number) {
+    const conversations = await this.chatService.getConversationsWithUsers(
+      userId,
+    );
+    console.log(conversations)
+    const conversationsTransform = ConversationCollection(conversations, socket.data.user.id)
+    this.server.to(socket.id).emit('conversations', conversationsTransform);
+
+    // .subscribe((conversations) => {
+    //   console.log('Conver', conversations)
+    //   this.logger.log(`Conver`);
+
+    //   this.server.to(socket.id).emit('conversations', conversations);
+    // });
   }
 
   afterInit(server: any) {
@@ -96,6 +120,7 @@ export class ChatGateway
             .getActiveUsers(newMessage.conversation.id)
             .pipe(take(1))
             .subscribe((activeConversations: ActiveConversation[]) => {
+              console.log('ACTive')
               activeConversations.forEach(
                 (activeConversation: ActiveConversation) => {
                   this.server
@@ -128,13 +153,8 @@ export class ChatGateway
 
   @SubscribeMessage('leaveConversation')
   leaveConversation(socket: Socket) {
-    this.chatService
-      .leaveConversation(socket.id)
-      .pipe(take(1))
-      .subscribe();
+    this.chatService.leaveConversation(socket.id).pipe(take(1)).subscribe();
   }
-
-  
 
   // @SubscribeMessage('msgToServer')
   // sendMessage(

@@ -11,19 +11,19 @@ import { Conversation } from './conversation.entity';
 @Entity('message')
 export class Message {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column()
-  message: string;
+  message?: string;
 
   @ManyToOne(() => User, (user) => user.messages)
-  user: User;
+  user?: User;
 
   @ManyToOne(
     () => Conversation,
     (conversation) => conversation.messages,
   )
-  conversation: Conversation;
+  conversation?: Conversation;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
