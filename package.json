@@ -45,6 +45,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "joi": "^17.5.0",
     "lodash": "^4.17.21",
+    "mkdirp": "^1.0.4",
     "moment": "^2.29.1",
     "mysql2": "^2.3.3",
     "nestjs-form-data": "^1.6.0",

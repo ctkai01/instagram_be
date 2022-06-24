@@ -13,8 +13,11 @@ export class Message {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column()
+  @Column({ nullable: true })
   message?: string;
+
+  @Column({ nullable: true })
+  image?: string;
 
   @ManyToOne(() => User, (user) => user.messages)
   user?: User;

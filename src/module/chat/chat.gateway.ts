@@ -21,6 +21,7 @@ import { MessageCollection } from 'src/resource/message/message.collection';
 import { MessageResource } from 'src/resource/message/message.resource';
 import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
+import { v4 as uuid } from 'uuid';
 
 @WebSocketGateway({
   cors: {
@@ -73,7 +74,7 @@ export class ChatGateway
     const conversations = await this.chatService.getConversationsWithUsers(
       userId,
     );
-    console.log(conversations);
+    console.log('CONVER AUTH', conversations);
     const conversationsTransform = ConversationCollection(
       conversations,
       socket.data.user.id,
@@ -108,29 +109,67 @@ export class ChatGateway
   }
 
   @SubscribeMessage('sendMessage')
-  handleMessage(socket: Socket, newMessage: Message) {
+  async handleMessage(socket: Socket, newMessage: Message) {
     if (!newMessage.conversation) return of(null);
 
     const { user } = socket.data;
     newMessage.user = user;
 
     if (newMessage.conversation.id) {
-      this.chatService
-        .createMessage(newMessage)
+      let saveFileName = '';
+      let isImage = false;
+      if (newMessage.image) {
+        isImage = true;
+        const type = newMessage.image.match(
+          /^data:image\/(png|jpeg);base64,/,
+        )[1];
+        saveFileName = './public/uploads/messages/' + uuid() + `.${type}`;
+      }
+
+      (await this.chatService.createMessage(newMessage, saveFileName))
         .pipe(take(1))
         .subscribe((message: Message) => {
           newMessage.id = message.id;
-
+          if (isImage) {
+            newMessage.image = message.image;
+          }
           this.chatService
             .getActiveUsers(newMessage.conversation.id)
             .pipe(take(1))
             .subscribe((activeConversations: ActiveConversation[]) => {
               activeConversations.forEach(
                 (activeConversation: ActiveConversation) => {
-                  const transFormMessage = MessageResource(newMessage)
+                  const transFormMessage = MessageResource(newMessage);
                   this.server
                     .to(activeConversation.socketId)
                     .emit('newMessage', transFormMessage);
+                },
+              );
+            });
+        });
+    }
+  }
+
+  @SubscribeMessage('deleteMessage')
+  deleteMessage(socket: Socket, messageDelete: Message) {
+    const { user } = socket.data;
+
+    if (messageDelete.user.id !== user.id) return of(null);
+
+    if (messageDelete.conversation.id) {
+      this.chatService
+        .deleteMessage(messageDelete)
+        .pipe(take(1))
+        .subscribe(() => {
+          this.chatService
+            .getActiveUsers(messageDelete.conversation.id)
+            .pipe(take(1))
+            .subscribe((activeConversations: ActiveConversation[]) => {
+              activeConversations.forEach(
+                (activeConversation: ActiveConversation) => {
+                  this.server
+                    .to(activeConversation.socketId)
+                    .emit('deletedMessage', messageDelete.id);
                 },
               );
             });
@@ -148,7 +187,7 @@ export class ChatGateway
             .getMessages(activeConversation.conversationId)
             .pipe(take(1))
             .subscribe((messages: Message[]) => {
-              const messageTransform = MessageCollection(messages) 
+              const messageTransform = MessageCollection(messages);
               this.server.to(socket.id).emit('messages', messageTransform);
             });
         }),

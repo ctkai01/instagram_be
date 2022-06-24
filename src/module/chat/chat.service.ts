@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { flattenDeep } from 'lodash';
+import { join } from 'path';
 import { from, map, mergeMap, Observable, of, switchMap, take } from 'rxjs';
 import { ActiveConversation } from 'src/entities/active-conversation.entity';
 import { User } from 'src/entities/auth.entity';
 import { Conversation } from 'src/entities/conversation.entity';
 import { Message } from 'src/entities/message.entity';
 import { DeleteResult, Repository } from 'typeorm';
+import { v4 as uuid } from 'uuid';
+// import fs from 'fs';
+const mkdirp = require('mkdirp');
+const fs = require('fs').promises;
 
 @Injectable()
 export class ChatService {
@@ -34,7 +39,7 @@ export class ChatService {
         .getOne(),
     ).pipe(map((conversation: Conversation) => conversation || undefined));
   }
-  
+
   // getConversationsForUser(userId: number): Observable<Conversation[]> {
   //   return from(
   //     this.conversationRepository
@@ -48,7 +53,7 @@ export class ChatService {
 
   // getUsersInConversation(conversationId: number): Observable<Conversation[]> {
   //   console.log('RUNING 222')
-    
+
   //   return from(
   //     this.conversationRepository
   //       .createQueryBuilder('conversation')
@@ -57,7 +62,6 @@ export class ChatService {
   //       .getMany(),
   //   );
   // }
-
 
   // getConversationsWithUsers(userId: number): Observable<Conversation[]> {
   //   console.log('RUNING')
@@ -72,39 +76,47 @@ export class ChatService {
   //     }),
   //   );
   // }
-    
+
   async getConversationsForUser(userId: number): Promise<Conversation[]> {
-    return await
-      this.conversationRepository
-        .createQueryBuilder('conversation')
-        .leftJoin('conversation.users', 'user')
-        .leftJoin('conversation.messages', 'message')
-        .where('user.id = :userId', { userId })
-        // .orderBy('conversation.lastUpdated', 'DESC')
-        .getMany()
+    return await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .leftJoin('conversation.users', 'user')
+      .leftJoin('conversation.messages', 'message')
+      .where('user.id = :userId', { userId })
+      .orderBy('conversation.updated_at', 'DESC')
+      .getMany();
   }
 
-  async getUsersInConversation(conversationId: number): Promise<Conversation[]> {
-    
-    return await 
-      this.conversationRepository
-        .createQueryBuilder('conversation')
-        .innerJoinAndSelect('conversation.users', 'user')
-        .innerJoinAndSelect('conversation.messages', 'message')
-        .innerJoinAndSelect('message.user', 'userMess')
-        .where('conversation.id = :conversationId', { conversationId })
-        .orderBy('message.created_at', 'ASC')
-        .getMany()
+  async getUsersInConversation(
+    conversationId: number,
+  ): Promise<Conversation[]> {
+    return await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .leftJoinAndSelect('conversation.users', 'user')
+      .leftJoinAndSelect('conversation.messages', 'message')
+      .leftJoinAndSelect('message.user', 'userMess')
+      .where('conversation.id = :conversationId', { conversationId })
+      .orderBy('message.created_at', 'ASC')
+      .getMany();
   }
 
   async getConversationsWithUsers(userId: number): Promise<Conversation[]> {
-    console.log('RUNING')
-    const conversationsUser = await this.getConversationsForUser(userId)
-    const usersInConversation = await Promise.all(conversationsUser.map(async (conversation) => await this.getUsersInConversation(conversation.id)))
-    const usersInConversationFlat = flattenDeep(usersInConversation)
+    const conversationsUser = await this.getConversationsForUser(userId);
 
-    return usersInConversationFlat
-   
+    console.log('FUck', conversationsUser)
+
+    const usersInConversation = await Promise.all(
+      conversationsUser.map(
+        async (conversation) =>
+          await this.getUsersInConversation(conversation.id),
+      ),
+    );
+    console.log('hello', usersInConversation)
+
+    const usersInConversationFlat = flattenDeep(usersInConversation);
+
+    return usersInConversationFlat;
+
     // return this.getConversationsForUser(userId).pipe(
     //   take(1),
     //   switchMap((conversations: Conversation[]) => {
@@ -136,9 +148,53 @@ export class ChatService {
     );
   }
 
-  createMessage(message: Message): Observable<Message> {
-    return from(this.messageRepository.save(message));
+  // async writeFile(path: string, content: string) {
+  //   await mkdirp(path);
+  //   fs.writeFileSync(path, content, {encoding: 'base64'} );
+  // }
+
+  async createMessage(message: Message, saveFileName: string): Promise<Observable<Message>> {
+    if (message.image) {
+      // const type = message.image.match(/^data:image\/(png|jpeg);base64,/)[1];
+      // const saveFileName = './public/uploads/messages/' + uuid() + `.${type}`;
+      // const saveFileName = '/' + uuid() + `.${type}`;
+      // this.writeFile(saveFileName,  this.getBase64Image(message.image))
+      // message['image'] = saveFileName
+      //       return from(this.messageRepository.save(message));
+      await fs.writeFile(
+        saveFileName,
+        this.getBase64Image(message.image),
+        {
+          encoding: 'base64',
+          flag: 'w+'
+        },
+        function (err) {
+          if (err !== null) {
+            console.log('Fuck you', err);
+          } else {
+            console.log('Send photo success!');
+           
+          }
+        },
+      );
+       const dataSave: Message = {
+              conversation: message.conversation,
+              image: saveFileName.slice(2),
+              user: message.user
+            }
+      return from(this.messageRepository.save(dataSave));
+
+    } else {
+      return from(this.messageRepository.save(message));
+
+    }
   }
+
+  deleteMessage(message: Message): Observable<DeleteResult> {
+      return from(this.messageRepository.delete({id: message.id}));
+  }
+
+
 
   getActiveUsers(conversationId: number): Observable<ActiveConversation[]> {
     return from(
@@ -147,7 +203,6 @@ export class ChatService {
       }),
     );
   }
-
 
   joinConversation(
     friendId: number,
@@ -204,5 +259,9 @@ export class ChatService {
         .getMany(),
     );
   }
-  
+
+  getBase64Image(imgData: string) {
+    // return imgData.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+    return imgData.split(';base64,').pop();
+  }
 }
