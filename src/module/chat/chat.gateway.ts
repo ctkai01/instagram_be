@@ -151,25 +151,24 @@ export class ChatGateway
   }
 
   @SubscribeMessage('deleteMessage')
-  deleteMessage(socket: Socket, messageDelete: Message) {
+  deleteMessage(socket: Socket, data) {
     const { user } = socket.data;
+    if (data.message.user.id !== user.id) return of(null);
 
-    if (messageDelete.user.id !== user.id) return of(null);
-
-    if (messageDelete.conversation.id) {
+    if (data.conversationId) {
       this.chatService
-        .deleteMessage(messageDelete)
+        .deleteMessage(data.message)
         .pipe(take(1))
         .subscribe(() => {
           this.chatService
-            .getActiveUsers(messageDelete.conversation.id)
+            .getActiveUsers(data.conversationId)
             .pipe(take(1))
             .subscribe((activeConversations: ActiveConversation[]) => {
               activeConversations.forEach(
                 (activeConversation: ActiveConversation) => {
                   this.server
                     .to(activeConversation.socketId)
-                    .emit('deletedMessage', messageDelete.id);
+                    .emit('deletedMessage', { idMessageDelete: data.message.id, idConversation: data.conversationId});
                 },
               );
             });

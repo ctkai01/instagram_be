@@ -12,6 +12,7 @@ export const UserConversationResource = (
     user_name: data.user_name,
     name: data.name,
     avatar: name,
+    is_tick: data.is_tick,
   };
 
   return dataTransform;
