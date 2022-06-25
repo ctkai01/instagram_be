@@ -9,7 +9,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Observable, of, Subscription, take, tap } from 'rxjs';
+import { from, Observable, of, Subscription, take, tap } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { ActiveConversation } from 'src/entities/active-conversation.entity';
 import { User } from 'src/entities/auth.entity';
@@ -22,6 +22,7 @@ import { MessageResource } from 'src/resource/message/message.resource';
 import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
 import { v4 as uuid } from 'uuid';
+import { CreateConversation } from 'src/interface';
 
 @WebSocketGateway({
   cors: {
@@ -74,13 +75,11 @@ export class ChatGateway
     const conversations = await this.chatService.getConversationsWithUsers(
       userId,
     );
-    console.log('CONVER AUTH', conversations);
     const conversationsTransform = ConversationCollection(
       conversations,
       socket.data.user.id,
     );
     this.server.to(socket.id).emit('conversations', conversationsTransform);
-
     // .subscribe((conversations) => {
     //   console.log('Conver', conversations)
     //   this.logger.log(`Conver`);
@@ -99,14 +98,75 @@ export class ChatGateway
   }
 
   @SubscribeMessage('createConversation')
-  createConversation(socket: Socket, friend: User) {
+  createConversation(socket: Socket, data: CreateConversation) {
     this.chatService
-      .createConversation(socket.data.user, friend)
+      .createConversation(socket.data.user, data.user)
       .pipe(take(1))
-      .subscribe(() => {
+      .subscribe((conversation) => {
         this.getConversations(socket, socket.data.user.id);
+        const newMessage: Message = {
+          user: data.authUser,
+          conversation
+        }
+        if (data.message) {
+          newMessage['message'] = data.message
+        } else if (data.image) {
+          newMessage['image'] = data.image
+        }
+        console.log('NEW GAME', newMessage)
+       this.chatService.joinConversation(data.user.id, socket.data.user.id, socket.id).pipe(take(1)).subscribe((activeConversations: ActiveConversation) => {
+        this.handleMessage(socket, newMessage)
+
+       })
+
       });
   }
+
+  // async handleMessageCreateConversation(socket: Socket, newMessage: Message) {
+  //   if (!newMessage.conversation) return of(null);
+
+  //   const { user } = socket.data;
+  //   newMessage.user = user;
+
+  //   if (newMessage.conversation.id) {
+  //     let saveFileName = '';
+  //     let isImage = false;
+  //     if (newMessage.image) {
+  //       isImage = true;
+  //       const type = newMessage.image.match(
+  //         /^data:image\/(png|jpeg);base64,/,
+  //       )[1];
+  //       saveFileName = './public/uploads/messages/' + uuid() + `.${type}`;
+  //     }
+
+  //     (await this.chatService.createMessage(newMessage, saveFileName))
+  //       .pipe(take(1))
+  //       .subscribe((message: Message) => {
+  //         newMessage.id = message.id;
+  //         if (isImage) {
+  //           newMessage.image = message.image;
+  //         }
+  //         this.chatService
+  //           .getActiveUsers(newMessage.conversation.id)
+  //           .pipe(take(1))
+  //           .subscribe((activeConversations: ActiveConversation[]) => {
+  //             console.log('FUCCCCC', activeConversations)
+  //             activeConversations.forEach(
+  //               (activeConversation: ActiveConversation) => {
+  //                 const transFormMessage = MessageResource(newMessage);
+  //                 console.log('NEWWWWWWWWWW')
+  //                 this.server
+  //                   .to(activeConversation.socketId)
+  //                   .emit('newMessage', transFormMessage);
+  //               },
+  //             );
+  //           });
+  //       });
+  //   }
+  // }
+
+
+
 
   @SubscribeMessage('sendMessage')
   async handleMessage(socket: Socket, newMessage: Message) {
@@ -137,12 +197,17 @@ export class ChatGateway
             .getActiveUsers(newMessage.conversation.id)
             .pipe(take(1))
             .subscribe((activeConversations: ActiveConversation[]) => {
+              console.log('send messs 2', activeConversations)
+            
               activeConversations.forEach(
                 (activeConversation: ActiveConversation) => {
                   const transFormMessage = MessageResource(newMessage);
+                 
                   this.server
                     .to(activeConversation.socketId)
                     .emit('newMessage', transFormMessage);
+                console.log('send messs')
+
                 },
               );
             });
@@ -194,6 +259,7 @@ export class ChatGateway
       .pipe(take(1))
       .subscribe();
   }
+
 
   @SubscribeMessage('leaveConversation')
   leaveConversation(socket: Socket) {

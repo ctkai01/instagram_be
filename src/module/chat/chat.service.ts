@@ -197,6 +197,7 @@ export class ChatService {
 
 
   getActiveUsers(conversationId: number): Observable<ActiveConversation[]> {
+    console.log('Id', conversationId)
     return from(
       this.activeConversationRepository.find({
         where: [{ conversationId }],

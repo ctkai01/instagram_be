@@ -24,7 +24,9 @@ export class Message {
 
   @ManyToOne(
     () => Conversation,
-    (conversation) => conversation.messages,
+    (conversation) => conversation.messages, {
+      onDelete: 'CASCADE',
+    }
   )
   conversation?: Conversation;
 
