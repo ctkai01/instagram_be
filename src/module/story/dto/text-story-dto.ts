@@ -11,13 +11,19 @@ export class TextStoryDto {
   @MinLength(1)
   color: string;
 
-  @MaxLength(3)
-  @IsNotEmpty()
-  @MinLength(1)
-  coordinatesX: string;
 
-  @MaxLength(3)
+  @MaxLength(20)
   @IsNotEmpty()
   @MinLength(1)
-  coordinatesY: string;
+  font: string;
+
+  // @MaxLength(3)
+  // @IsNotEmpty()
+  // @MinLength(1)
+  // coordinatesX: string;
+
+  // @MaxLength(3)
+  // @IsNotEmpty()
+  // @MinLength(1)
+  // coordinatesY: string;
 }

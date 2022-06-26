@@ -9,6 +9,8 @@ import {
   UseFilters,
   UseGuards,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterConfig } from 'src/config/multer-config';
@@ -19,13 +21,15 @@ import { AtGuard } from 'src/guards';
 import { CreateStoryDto } from './dto/create-story-dto';
 import { StoryService } from './story.service';
 
-@Controller('story')
+@Controller('stories')
 @UseFilters(new HttpExceptionValidateFilter())
 @UseInterceptors(TransformInterceptor)
 @UseGuards(AtGuard)
 export class StoryController {
   constructor(private storyService: StoryService) {}
   @UseInterceptors(FileInterceptor('file', new MulterConfig().options()))
+  @UsePipes(new ValidationPipe({ transform: true }))
+  
   @Post()
   createStory(
     @GetCurrentUserId() userId: number,

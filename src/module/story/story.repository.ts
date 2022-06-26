@@ -11,7 +11,7 @@ export class StoryRepository extends Repository<Story> {
     userId: number,
     file: Express.Multer.File,
   ): Promise<any> {
-    const { textJson } = createStoryDto;
+    const { textStory } = createStoryDto;
 
     try {
       const userRepository = this.manager.getRepository(User);
@@ -24,7 +24,7 @@ export class StoryRepository extends Repository<Story> {
       }
       const data: Story = {
         media: file.path.replace('\\', '\\'),
-        text_json: textJson ? textJson : null,
+        text_json: textStory ? textStory : null,
         user: userAuth,
         typeMedia,
       };

@@ -30,7 +30,7 @@ export class Story {
   user: User;
 
   @Column('json', { nullable: true })
-  text_json?: TextStory[];
+  text_json?: TextStory;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
