@@ -11,7 +11,7 @@ export const PostResource = async (
     id: data.id,
     caption: data.caption,
     location: data.location,
-    created_by: await UserLoginResource(data.user),
+    created_by: await UserLoginResource(data.user, userAuth),
     is_off_comment: data.is_off_comment,
     is_hide_like_view: data.is_hide_like_view,
     like_count: await data.getCountLike(),

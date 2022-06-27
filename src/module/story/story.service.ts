@@ -29,13 +29,13 @@ export class StoryService {
       file,
     );
     const responseData: ResponseData = {
-      data: StoryResource(story),
+      data: StoryResource(story, userId),
       message: 'Create Story Successfully!',
     };
     return responseData;
   }
 
-  async getStory(idStory: number): Promise<ResponseData> {
+  async getStory(idStory: number, idAuth): Promise<ResponseData> {
     const story = await this.storyRepository.getStory(idStory);
 
     if (!story) {
@@ -43,7 +43,7 @@ export class StoryService {
     }
 
     const responseData: ResponseData = {
-      data: StoryResource(story),
+      data: StoryResource(story, idAuth),
       message: 'Get Story Successfully!',
     };
     return responseData;

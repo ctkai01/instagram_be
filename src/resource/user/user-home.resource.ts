@@ -12,6 +12,7 @@ export const UserHomeResource = async (
     is_following: await userAuth.isFollowing(data),
     count_follower: await data.countFollowerUser(),
     count_following: await data.countFollowingUser(),
+    view_all_story: await data.getViewAll(userAuth)
   };
 
   delete dataTransform['refresh_token'];

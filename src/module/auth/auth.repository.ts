@@ -146,19 +146,32 @@ export class UserRepository extends Repository<User> {
 
 
   async getStoryHome(idsUserFollowing: number[]) {
-    const stories = await this.createQueryBuilder('users')
-      .innerJoinAndSelect('users.stories', 'story')
+    const users = await this.createQueryBuilder('users')
+      .leftJoinAndSelect('users.stories', 'story')
       .where('users.id  IN (:...userIds)')
       .setParameter('userIds', [...idsUserFollowing])
       .orderBy('story.created_at', 'ASC')
       .getMany();
-      
-      return stories
+
+      console.log('Hello', users)
+
+      const usersEffectStory = users.map(user => {
+        const storiesEffect = user.stories.filter(story => {
+          return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+        })
+        user.stories = storiesEffect
+        return user
+      })
+
+      // const storiesEffect = users.filter(story => {
+      //   return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+      // })
+      return usersEffectStory
   }
 
   async getStoryByUserName(user_name: string) {
     const user = await this.createQueryBuilder('users')
-      .innerJoinAndSelect('users.stories', 'story')
+      .leftJoinAndSelect('users.stories', 'story')
       .where('users.user_name = :userName', { userName: user_name })
       .orderBy('story.created_at', 'ASC')
       .getOne();

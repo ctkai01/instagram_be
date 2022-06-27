@@ -36,6 +36,7 @@ export class Media {
   @JoinColumn([{ name: 'post_id', referencedColumnName: 'id' }])
   post?: Post;
 
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
 

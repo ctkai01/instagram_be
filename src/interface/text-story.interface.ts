@@ -5,3 +5,9 @@ export interface TextStory {
   // coordinatesX: string;
   // coordinatesY: string;
 }
+
+export enum ViewStory {
+  NONE,
+  SEE,
+  SAW
+}

@@ -1,7 +1,8 @@
-import { MediaType } from 'src/constants';
+import { ActiveStatus, MediaType } from 'src/constants';
 import {
   Column,
   Entity,
+  getRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -37,10 +38,27 @@ export class Story {
   @OneToMany(() => UserStory, (userStories) => userStories.story)
   userStories?: UserStory[];
 
+  is_view?: ActiveStatus;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
+
+  async getIsView?(idUserAuth: number): Promise<ActiveStatus> {
+    const checkExist = await getRepository(Story)
+      .createQueryBuilder('stories')
+      .leftJoin('stories.userStories', 'userStories')
+      .where('userStories.story_id = :storyId', { storyId: this.id })
+      .andWhere('userStories.user_id = :userId', {
+        userId: idUserAuth,
+      })
+      .andWhere('userStories.is_view = :isView', {
+        isView: ActiveStatus.ACTIVE
+      })
+      .getOne();
+
+      return checkExist ? ActiveStatus.ACTIVE : ActiveStatus.NO_ACTIVE
+  }
 }

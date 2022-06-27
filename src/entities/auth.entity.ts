@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
-import moment from 'moment';
+import moment = require('moment');
+
 import {
   ActiveStatus,
   ActivityStatus,
@@ -9,7 +10,7 @@ import {
   Status,
   StoryStatus,
 } from 'src/constants';
-import { Pagination } from 'src/interface';
+import { Pagination, ViewStory } from 'src/interface';
 import { UserRepository } from 'src/module/auth/auth.repository';
 import {
   Brackets,
@@ -143,7 +144,8 @@ export class User {
 
   followed_by?: string[];
 
-  view_all_story?: number;
+  view_all_story?: ViewStory;
+
 
   async isFollowing?(userTarget: User): Promise<FollowStatus> {
     const isFollowing = await getRepository(User)
@@ -159,30 +161,42 @@ export class User {
     return Boolean(isFollowing) ? FollowStatus.FOLLOW : FollowStatus.UN_FOLLOW;
   }
 
-  async getViewAll?(userAuth: User) {
+  async getViewAll?(userAuth: User): Promise<ViewStory> {
     const user = await getRepository(User).createQueryBuilder('users')
-    .innerJoinAndSelect('users.stories', 'story')
+    .leftJoinAndSelect('users.stories', 'story')
     .where('users.user_name = :userName', { userName: this.user_name })
     .orderBy('story.created_at', 'ASC')
     .getOne();
     
-    const storiesEffect = user.stories.filter(story => {
-      return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
-    })
 
-    const storiesEffectUser = storiesEffect
-    const storiesEffectUserIds = storiesEffectUser.map(el => el.id)
-    const countView = await getRepository(User)
-      .createQueryBuilder('stories')
-      .leftJoin('stories.userStories', 'userStories')
-      .where('userStories.story_id  IN (:...storyIds)')
-      .andWhere('userStories.user_id = :userId', { userId: userAuth.id })
-      .andWhere('story_users.is_view = :is_view', {
-        is_view: ActiveStatus.ACTIVE,
-      })
-      .setParameter('storyIds', [...storiesEffectUserIds])
-      .getCount();
-      return countView
+      // if (user) {
+        const storiesEffect = user.stories.filter(story => {
+          return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+        })
+        console.log(storiesEffect)
+        const storiesEffectUser = storiesEffect
+    
+        if (!storiesEffectUser.length) {
+          return ViewStory.NONE
+        }
+    
+        const storiesEffectUserIds = storiesEffectUser.map(el => el.id)
+        const countView = await getRepository(Story)
+          .createQueryBuilder('stories')
+          .leftJoin('stories.userStories', 'userStories')
+          .where('userStories.story_id  IN (:...storyIds)')
+          .andWhere('userStories.user_id = :userId', { userId: userAuth.id })
+          .andWhere('userStories.is_view = :is_view', {
+            is_view: ActiveStatus.ACTIVE,
+          })
+          .setParameter('storyIds', [...storiesEffectUserIds])
+          .getCount();
+          return countView === storiesEffectUserIds.length ? ViewStory.SAW : ViewStory.SEE
+      // } else {
+      //   return ViewStory.NONE
+
+      // }
+   
   }
 
   async countFollowingUser?(): Promise<number> {

@@ -1,3 +1,4 @@
+import { AuthService } from './../auth/auth.service';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,6 +15,8 @@ import { UserStoryCollection } from 'src/resource/user/user-story.collection';
 import { UserCollection } from 'src/resource/user/user.collection';
 import { UserResource } from 'src/resource/user/user.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
+import { ChangePasswordDto } from './dto/change-password-dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -21,6 +24,7 @@ export class UserService {
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
     private configService: ConfigService,
+    private authService: AuthService,
   ) {}
 
   async listFollowingByUserId(
@@ -45,14 +49,15 @@ export class UserService {
 
     let [data, count] = await user.getFollowingAndCountPagination(pagination);
 
-    const checkIndexAuthUser = data.findIndex(user => user.id === userAuth.id)
+    const checkIndexAuthUser = data.findIndex(
+      (user) => user.id === userAuth.id,
+    );
 
     if (checkIndexAuthUser != -1) {
-      const userAuthFollowing = data[checkIndexAuthUser]
+      const userAuthFollowing = data[checkIndexAuthUser];
       data.splice(checkIndexAuthUser, 1);
       data.unshift(userAuthFollowing);
     }
-
 
     const dataFollowing = await UserFollowCollection(data, userAuth);
     const responseData: ResponseData = {
@@ -83,13 +88,14 @@ export class UserService {
       take,
     };
 
-
     let [data, count] = await user.getFollowerAndCountPagination(pagination);
 
-    const checkIndexAuthUser = data.findIndex(user => user.id === userAuth.id)
+    const checkIndexAuthUser = data.findIndex(
+      (user) => user.id === userAuth.id,
+    );
 
     if (checkIndexAuthUser != -1) {
-      const userAuthFollower = data[checkIndexAuthUser]
+      const userAuthFollower = data[checkIndexAuthUser];
       data.splice(checkIndexAuthUser, 1);
       data.unshift(userAuthFollower);
     }
@@ -104,7 +110,9 @@ export class UserService {
   }
 
   async profileUserByUserName(userName: string, userAuth: User) {
-    const user = await this.userRepository.getUserByUserNameWithRelation(userName);
+    const user = await this.userRepository.getUserByUserNameWithRelation(
+      userName,
+    );
     if (!user) {
       throw new InternalServerErrorException('User not found');
     }
@@ -116,7 +124,10 @@ export class UserService {
     return responseData;
   }
 
-  async searchUserByUserNameAndFullName(search: string): Promise<ResponseData> {
+  async searchUserByUserNameAndFullName(
+    search: string,
+    userAuth: User,
+  ): Promise<ResponseData> {
     const take = this.configService.get('search.take');
 
     let users;
@@ -127,7 +138,7 @@ export class UserService {
       users = [];
     }
 
-    const dataSearchUser = await UserSearchCollection(users);
+    const dataSearchUser = await UserSearchCollection(users, userAuth);
     const responseData: ResponseData = {
       data: dataSearchUser,
       message: 'Get Data Successfully',
@@ -178,10 +189,12 @@ export class UserService {
 
   async listUsersSuggestForYou(
     userAuth: User,
-    count: number
+    count: number,
   ): Promise<ResponseData> {
-
-    let userSuggest = await this.userRepository.getUserSuggestForYou(userAuth, count);
+    let userSuggest = await this.userRepository.getUserSuggestForYou(
+      userAuth,
+      count,
+    );
 
     // console.log(userSuggest)
     const dataSuggest = await UserFollowCollection(userSuggest, userAuth, true);
@@ -194,12 +207,8 @@ export class UserService {
     return responseData;
   }
 
-  async checkHasFollowing(
-    userAuth: User,
-  ): Promise<ResponseData> {
-
-    let checkHasFollowing = await userAuth.countFollowingUser()
-
+  async checkHasFollowing(userAuth: User): Promise<ResponseData> {
+    let checkHasFollowing = await userAuth.countFollowingUser();
 
     const responseData: ResponseData = {
       data: !!checkHasFollowing,
@@ -212,21 +221,23 @@ export class UserService {
   async getStoryHome(userAuth: User) {
     let idsUserFollowing = await userAuth.getFollowing();
     idsUserFollowing.push(userAuth.id);
-    
-    const users = (await this.userRepository.getStoryHome(idsUserFollowing)).filter(user => user.stories.length)
-    
 
+    const users = (
+      await this.userRepository.getStoryHome(idsUserFollowing)
+    ).filter((user) => user.stories.length);
 
     const sortUsers = sortBy(users, (user) => {
-      return user.stories[user.stories.length - 1].created_at
-    }).reverse()
-    const checkIndexExistUserAuth = sortUsers.findIndex(user => user.id === userAuth.id)
+      return user.stories[user.stories.length - 1].created_at;
+    }).reverse();
+    const checkIndexExistUserAuth = sortUsers.findIndex(
+      (user) => user.id === userAuth.id,
+    );
 
     if (checkIndexExistUserAuth !== -1) {
-      const userAuthStories =  sortUsers.splice(checkIndexExistUserAuth, 1)[0]
-      console.log(userAuthStories)
-      console.log(checkIndexExistUserAuth)
-      sortUsers.unshift(userAuthStories)
+      const userAuthStories = sortUsers.splice(checkIndexExistUserAuth, 1)[0];
+      console.log(userAuthStories);
+      console.log(checkIndexExistUserAuth);
+      sortUsers.unshift(userAuthStories);
     }
 
     const responseData: ResponseData = {
@@ -234,8 +245,25 @@ export class UserService {
       message: 'Get Data Successfully',
     };
 
-    return responseData
+    return responseData;
   }
 
+  async changePassword(changePasswordDto: ChangePasswordDto, userAuth: User) {
+    const { password_old, password_new } = changePasswordDto;
+    const checkPassword = bcrypt.compareSync(password_old, userAuth.password);
 
+    if (!checkPassword) {
+      throw new InternalServerErrorException('Password incorrect');
+    }
+    const passwordNewHash =  await this.authService.hashData(password_new);
+    userAuth.password = passwordNewHash
+
+    await this.userRepository.save(userAuth);
+
+    const responseData: ResponseData = {
+      message: 'Change password Data Successfully',
+    };
+
+    return responseData;
+  }
 }

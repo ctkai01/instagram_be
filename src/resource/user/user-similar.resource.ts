@@ -12,6 +12,7 @@ export const UserSimilarResource = async (
     ...data,
     avatar: name,
     is_following: await userAuth.isFollowing(data),
+    view_all_story: await data.getViewAll(userAuth)
   };
 
   delete dataTransform['refresh_token'];

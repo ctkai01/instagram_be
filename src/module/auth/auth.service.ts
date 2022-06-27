@@ -31,7 +31,7 @@ export class AuthService {
 
     const responseData: ResponseData = {
       data: {
-        user: await UserLoginResource(user),
+        user: await UserLoginResource(user, user),
         tokens,
       },
       message: 'Create User Successfully!',
@@ -55,7 +55,7 @@ export class AuthService {
       await this.updateRtHash(user.id, tokens.refresh_token);
       const responseData: ResponseData = {
         data: {
-          user: await UserLoginResource(user),
+          user: await UserLoginResource(user, user),
           tokens,
         },
         message: 'Login Successfully!',

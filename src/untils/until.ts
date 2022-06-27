@@ -19,6 +19,8 @@ export function ffmpegSync(
   const outPut = `./${file.destination}/${index}${file.filename}`;
   const valueReturn = `${file.destination}/${index}${file.filename}`;
   return new Promise((resolvePromise, reject) => {
+    console.log('Start', startTime)
+    console.log('End', endTime)
     ffprobe(videoFile, (err: any, metaData: FfprobeData) => {
       ffmpeg()
         .input(videoFile)

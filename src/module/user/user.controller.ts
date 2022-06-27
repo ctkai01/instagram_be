@@ -1,6 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -16,6 +19,7 @@ import { TransformInterceptor } from 'src/custom-response/core.response';
 import { UserService } from './user.service';
 import { GetCurrentUser } from 'src/decorators';
 import { User } from 'src/entities/auth.entity';
+import { ChangePasswordDto } from './dto/change-password-dto';
 
 @Controller('user')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -47,6 +51,16 @@ export class UserController {
     @GetCurrentUser() userAuth: User,
   ) {
     return this.userService.checkHasFollowing(userAuth);
+  }
+
+  @Post('/change-password')
+  @HttpCode(HttpStatus.OK)
+  changePassword(
+    @Param('userName') userName: string,
+    @GetCurrentUser() userAuth: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ){
+    return this.userService.changePassword(changePasswordDto, userAuth);
   }
 
   @Get('/suggest-for-you')
@@ -86,8 +100,9 @@ export class UserController {
   @Get('')
   searchUserByUserNameAndFullName(
     @Query('search') search: string,
+    @GetCurrentUser() userAuth: User,
   ): Promise<ResponseData> {
-    return this.userService.searchUserByUserNameAndFullName(search);
+    return this.userService.searchUserByUserNameAndFullName(search, userAuth);
   }
 
   @Get('/:userName/similar_accounts')
@@ -97,4 +112,6 @@ export class UserController {
   ): Promise<ResponseData> {
     return this.userService.listSimilarByUsername(userName, userAuth);
   }
+
+  
 }

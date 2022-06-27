@@ -15,6 +15,7 @@ export const UserHomeSearchResource = async (
     is_tick: data.is_tick,
     name: data.name,
     is_following: await userAuth.isFollowing(data),
+    view_all_story: await data.getViewAll(userAuth)
   };
 
   if (dataTransform.is_following === FollowStatus.FOLLOW) {

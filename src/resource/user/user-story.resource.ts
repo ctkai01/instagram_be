@@ -15,7 +15,7 @@ export const UserStoryResource = async (
     name: data.name,
     user_name: data.user_name,
     avatar: name,
-    stories: StoryCollection(data.stories),
+    stories: await StoryCollection(data.stories, userAuth.id),
     view_all_story: await data.getViewAll(userAuth)
   };
 

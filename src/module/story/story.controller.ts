@@ -48,8 +48,11 @@ export class StoryController {
   }
 
   @Get('/:id')
-  getStory(@Param('id', ParseIntPipe) idStory: number) {
-    return this.storyService.getStory(idStory);
+  getStory(
+    @Param('id', ParseIntPipe) idStory: number,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.storyService.getStory(idStory, userAuth.id);
   }
 
   @Get('user/:user_name')
