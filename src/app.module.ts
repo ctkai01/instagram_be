@@ -26,6 +26,7 @@ import { ChatModule } from './module/chat/chat.module';
 import { ActiveConversation } from './entities/active-conversation.entity';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
+import { UserStory } from './entities/user-story.entity';
 
 @Module({
   imports: [
@@ -79,7 +80,8 @@ import { Message } from './entities/message.entity';
             CommentUser,
             ActiveConversation,
             Conversation,
-            Message
+            Message,
+            UserStory
             // ChatMember,
             // ChatTopic,
             // MessageUser,

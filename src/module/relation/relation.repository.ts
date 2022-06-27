@@ -17,7 +17,7 @@ export class RelationRepository extends Repository<Relation> {
           ? FollowStatus.PENDING_FOLLOW
           : FollowStatus.FOLLOW,
     };
-
+    
     const relation = this.create(data);
     const relationCreate = await this.save(relation);
     return relationCreate;

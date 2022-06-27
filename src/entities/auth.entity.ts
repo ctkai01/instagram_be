@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import moment from 'moment';
 import {
   ActiveStatus,
   ActivityStatus,
@@ -9,6 +10,7 @@ import {
   StoryStatus,
 } from 'src/constants';
 import { Pagination } from 'src/interface';
+import { UserRepository } from 'src/module/auth/auth.repository';
 import {
   Brackets,
   Column,
@@ -29,6 +31,7 @@ import { PostUser } from './post-user.entity';
 import { Post } from './post.entity';
 import { Relation } from './relation.entity';
 import { Story } from './story.entity';
+import { UserStory } from './user-story.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -106,6 +109,9 @@ export class User {
   @OneToMany(() => PostUser, (postUser) => postUser.user)
   postUsers?: PostUser[];
 
+  @OneToMany(() => UserStory, (userStory) => userStory.user)
+  storyUsers?: UserStory[];
+
   @OneToMany(() => CommentUser, (commentUser) => commentUser.user)
   commentUsers?: CommentUser[];
 
@@ -137,6 +143,8 @@ export class User {
 
   followed_by?: string[];
 
+  view_all_story?: number;
+
   async isFollowing?(userTarget: User): Promise<FollowStatus> {
     const isFollowing = await getRepository(User)
       .createQueryBuilder('users')
@@ -149,6 +157,32 @@ export class User {
       .getCount();
 
     return Boolean(isFollowing) ? FollowStatus.FOLLOW : FollowStatus.UN_FOLLOW;
+  }
+
+  async getViewAll?(userAuth: User) {
+    const user = await getRepository(User).createQueryBuilder('users')
+    .innerJoinAndSelect('users.stories', 'story')
+    .where('users.user_name = :userName', { userName: this.user_name })
+    .orderBy('story.created_at', 'ASC')
+    .getOne();
+    
+    const storiesEffect = user.stories.filter(story => {
+      return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+    })
+
+    const storiesEffectUser = storiesEffect
+    const storiesEffectUserIds = storiesEffectUser.map(el => el.id)
+    const countView = await getRepository(User)
+      .createQueryBuilder('stories')
+      .leftJoin('stories.userStories', 'userStories')
+      .where('userStories.story_id  IN (:...storyIds)')
+      .andWhere('userStories.user_id = :userId', { userId: userAuth.id })
+      .andWhere('story_users.is_view = :is_view', {
+        is_view: ActiveStatus.ACTIVE,
+      })
+      .setParameter('storyIds', [...storiesEffectUserIds])
+      .getCount();
+      return countView
   }
 
   async countFollowingUser?(): Promise<number> {

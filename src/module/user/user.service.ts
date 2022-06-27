@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { sortBy } from 'lodash';
 import { User } from 'src/entities/auth.entity';
 import { Pagination } from 'src/interface/pagination.interface';
 import { ResponseData } from 'src/interface/response.interface';
@@ -9,6 +10,7 @@ import { UserFollowCollection } from 'src/resource/user/user-follow.collection';
 import { UserHomeSearchCollection } from 'src/resource/user/user-home-search.collection';
 import { UserSearchCollection } from 'src/resource/user/user-search.collection';
 import { UserSimilarCollection } from 'src/resource/user/user-similar.collection';
+import { UserStoryCollection } from 'src/resource/user/user-story.collection';
 import { UserCollection } from 'src/resource/user/user.collection';
 import { UserResource } from 'src/resource/user/user.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
@@ -206,4 +208,34 @@ export class UserService {
 
     return responseData;
   }
+
+  async getStoryHome(userAuth: User) {
+    let idsUserFollowing = await userAuth.getFollowing();
+    idsUserFollowing.push(userAuth.id);
+    
+    const users = (await this.userRepository.getStoryHome(idsUserFollowing)).filter(user => user.stories.length)
+    
+
+
+    const sortUsers = sortBy(users, (user) => {
+      return user.stories[user.stories.length - 1].created_at
+    }).reverse()
+    const checkIndexExistUserAuth = sortUsers.findIndex(user => user.id === userAuth.id)
+
+    if (checkIndexExistUserAuth !== -1) {
+      const userAuthStories =  sortUsers.splice(checkIndexExistUserAuth, 1)[0]
+      console.log(userAuthStories)
+      console.log(checkIndexExistUserAuth)
+      sortUsers.unshift(userAuthStories)
+    }
+
+    const responseData: ResponseData = {
+      data: await UserStoryCollection(sortUsers, userAuth),
+      message: 'Get Data Successfully',
+    };
+
+    return responseData
+  }
+
+
 }

@@ -15,7 +15,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterConfig } from 'src/config/multer-config';
 import { TransformInterceptor } from 'src/custom-response/core.response';
-import { GetCurrentUserId } from 'src/decorators';
+import { GetCurrentUser, GetCurrentUserId } from 'src/decorators';
+import { User } from 'src/entities/auth.entity';
 import { HttpExceptionValidateFilter } from 'src/filter/http-exception.filter';
 import { AtGuard } from 'src/guards';
 import { CreateStoryDto } from './dto/create-story-dto';
@@ -29,7 +30,6 @@ export class StoryController {
   constructor(private storyService: StoryService) {}
   @UseInterceptors(FileInterceptor('file', new MulterConfig().options()))
   @UsePipes(new ValidationPipe({ transform: true }))
-  
   @Post()
   createStory(
     @GetCurrentUserId() userId: number,
@@ -39,13 +39,24 @@ export class StoryController {
     return this.storyService.createStory(createStoryDto, userId, file);
   }
 
+  @Post('/:id/view')
+  createIsViewStory(
+    @Param('id') idStory: number,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.storyService.createIsViewStory(idStory, userAuth);
+  }
+
   @Get('/:id')
   getStory(@Param('id', ParseIntPipe) idStory: number) {
     return this.storyService.getStory(idStory);
   }
 
-  @Get('user/:id')
-  getStoryByIdUser(@Param('id', ParseIntPipe) idUser: number) {
-    return this.storyService.getStoryByIdUser(idUser);
+  @Get('user/:user_name')
+  getStoryByIdUser(
+    @Param('user_name') userName: string,
+    @GetCurrentUser() userAuth: User,
+  ) {
+    return this.storyService.getStoryByUserName(userName, userAuth);
   }
 }

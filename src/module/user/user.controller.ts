@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Post,
   Query,
   UseFilters,
   UseGuards,
@@ -34,13 +35,19 @@ export class UserController {
     );
   }
 
+  @Get('stories')
+  getStoryHome(@GetCurrentUser() userAuth: User) {
+    return this.userService.getStoryHome(userAuth);
+  }
+
+
+
   @Get('/check-has-following')
   checkHasFollowing(
     @GetCurrentUser() userAuth: User,
   ) {
     return this.userService.checkHasFollowing(userAuth);
   }
-
 
   @Get('/suggest-for-you')
   getUsersSuggestForYou(

@@ -1,10 +1,11 @@
-import { EntityRepository, In, Not, Repository } from 'typeorm';
+import { Brackets, EntityRepository, In, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user-dto';
 import { ConflictException } from '@nestjs/common';
-import { defaultAvatar } from 'src/untils/until';
+import { defaultAvatar, getStartEndDateNowTimeStamp } from 'src/untils/until';
 import { User } from 'src/entities/auth.entity';
 import _ = require('lodash');
 import { take } from 'lodash';
+import moment = require('moment');
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -141,5 +142,31 @@ export class UserRepository extends Repository<User> {
 
     // .where('users.user_name  like :search', { search: `%${search}%` })
     // .orWhere('users.name  like :search', { search: `%${search}%` }).getMany()
+  }
+
+
+  async getStoryHome(idsUserFollowing: number[]) {
+    const stories = await this.createQueryBuilder('users')
+      .innerJoinAndSelect('users.stories', 'story')
+      .where('users.id  IN (:...userIds)')
+      .setParameter('userIds', [...idsUserFollowing])
+      .orderBy('story.created_at', 'ASC')
+      .getMany();
+      
+      return stories
+  }
+
+  async getStoryByUserName(user_name: string) {
+    const user = await this.createQueryBuilder('users')
+      .innerJoinAndSelect('users.stories', 'story')
+      .where('users.user_name = :userName', { userName: user_name })
+      .orderBy('story.created_at', 'ASC')
+      .getOne();
+      
+      const storiesEffect = user.stories.filter(story => {
+        return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+      })
+      user.stories = storiesEffect
+      return user
   }
 }

@@ -33,3 +33,19 @@ export function ffmpegSync(
     });
   });
 }
+
+interface StartEndDateNowTimeStamp {
+  startOfDay: number,
+  endOfDay: number,
+}
+
+export function getStartEndDateNowTimeStamp(): StartEndDateNowTimeStamp {
+  const now = new Date().getTime();
+  let startOfDay = new Date(now - (now % 86400000));
+  let endDate = new Date(now - (now % 86400000) + 86400000);
+
+  return {
+    startOfDay: startOfDay.getTime(),
+    endOfDay: endDate.getTime()
+  }
+}

@@ -1,7 +1,8 @@
-import { MediaType } from 'src/constants';
+import { ActiveStatus, MediaType } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Story } from 'src/entities/story.entity';
-import { EntityRepository, Repository } from 'typeorm';
+import { UserStory } from 'src/entities/user-story.entity';
+import { createQueryBuilder, EntityRepository, getRepository, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story-dto';
 
 @EntityRepository(Story)
@@ -17,17 +18,21 @@ export class StoryRepository extends Repository<Story> {
       const userRepository = this.manager.getRepository(User);
       const userAuth = await userRepository.findOne({ id: userId });
       let typeMedia: MediaType;
-      if (file.mimetype.split('/')[0] === 'image') {
-        typeMedia = MediaType.image;
-      } else {
-        typeMedia = MediaType.video;
-      }
       const data: Story = {
-        media: file.path.replace('\\', '\\'),
         text_json: textStory ? textStory : null,
         user: userAuth,
-        typeMedia,
       };
+
+      if (file) {
+        if (file.mimetype.split('/')[0] === 'image') {
+          typeMedia = MediaType.image;
+        } else {
+          typeMedia = MediaType.video;
+        }
+        data['typeMedia'] = typeMedia;
+        data['media'] = file.path.replace('\\', '\\');
+      }
+
       const story = this.create(data);
 
       const storyCreated = await this.save(story);
@@ -58,4 +63,19 @@ export class StoryRepository extends Repository<Story> {
       console.log(err);
     }
   }
+
+  async createView(userAuth: User, story: Story) {
+    try {
+      const userStory = new UserStory();
+      userStory.story = story
+      userStory.user = userAuth
+      userStory.is_view = ActiveStatus.ACTIVE;
+      const userStoryCreated = getRepository(UserStory).save(userStory);
+      return userStoryCreated;
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
 }
