@@ -17,6 +17,8 @@ import { UserResource } from 'src/resource/user/user.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
 import { ChangePasswordDto } from './dto/change-password-dto';
 import * as bcrypt from 'bcryptjs';
+import { UpdateProfileDto } from './dto/update-profile-dto';
+import { UserLoginResource } from 'src/resource/user/user-login.resource';
 
 @Injectable()
 export class UserService {
@@ -249,19 +251,49 @@ export class UserService {
   }
 
   async changePassword(changePasswordDto: ChangePasswordDto, userAuth: User) {
-    const { password_old, password_new } = changePasswordDto;
-    const checkPassword = bcrypt.compareSync(password_old, userAuth.password);
+    const { old_password, new_password } = changePasswordDto;
+    const checkPassword = bcrypt.compareSync(old_password, userAuth.password);
 
     if (!checkPassword) {
       throw new InternalServerErrorException('Password incorrect');
     }
-    const passwordNewHash =  await this.authService.hashData(password_new);
+    const passwordNewHash =  await this.authService.hashData(new_password);
     userAuth.password = passwordNewHash
 
     await this.userRepository.save(userAuth);
 
     const responseData: ResponseData = {
       message: 'Change password Data Successfully',
+    };
+
+    return responseData;
+  }
+
+  async updateProfile(userAuth: User, updateProfileDto: UpdateProfileDto) {
+    const { bio, name, website } = updateProfileDto;
+
+
+    userAuth.bio = bio
+    userAuth.name = name
+    userAuth.website = website
+
+    await this.userRepository.save(userAuth);
+    const responseData: ResponseData = {
+      data: await UserLoginResource(userAuth, userAuth),
+      message: 'Update profile Successfully',
+    };
+
+    return responseData;
+  }
+
+  async updateAvatar(userAuth: User, file: Express.Multer.File) {
+
+    userAuth.avatar = file.path.replace('\\', '\\');
+
+    await this.userRepository.save(userAuth);
+    const responseData: ResponseData = {
+      data: await UserLoginResource(userAuth, userAuth),
+      message: 'Update profile Successfully',
     };
 
     return responseData;

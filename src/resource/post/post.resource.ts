@@ -15,6 +15,7 @@ export const PostResource = async (
     is_off_comment: data.is_off_comment,
     is_hide_like_view: data.is_hide_like_view,
     like_count: await data.getCountLike(),
+    comment_count: await data.getCountComment(),
     is_like: await data.isLike(userAuth),
     media: MediaCollection(data.media),
     created_at: data.created_at,

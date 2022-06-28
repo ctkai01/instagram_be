@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UploadedFile,
   UseFilters,
   UseGuards,
   UseInterceptors,
@@ -20,6 +21,9 @@ import { UserService } from './user.service';
 import { GetCurrentUser } from 'src/decorators';
 import { User } from 'src/entities/auth.entity';
 import { ChangePasswordDto } from './dto/change-password-dto';
+import { UpdateProfileDto } from './dto/update-profile-dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterConfig } from 'src/config/multer-config';
 
 @Controller('user')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -44,12 +48,27 @@ export class UserController {
     return this.userService.getStoryHome(userAuth);
   }
 
+  @Post('profile')
+  updateProfile(
+    @GetCurrentUser() userAuth: User,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.userService.updateProfile(userAuth, updateProfileDto);
+  }
 
+  @UseInterceptors(FileInterceptor('file', new MulterConfig().options()))
+
+  @Post('profile/avatar')
+  updateAvatar(
+    @GetCurrentUser() userAuth: User,
+    @UploadedFile() file: Express.Multer.File,
+
+  ) {
+    return this.userService.updateAvatar(userAuth, file);
+  }
 
   @Get('/check-has-following')
-  checkHasFollowing(
-    @GetCurrentUser() userAuth: User,
-  ) {
+  checkHasFollowing(@GetCurrentUser() userAuth: User) {
     return this.userService.checkHasFollowing(userAuth);
   }
 
@@ -59,7 +78,7 @@ export class UserController {
     @Param('userName') userName: string,
     @GetCurrentUser() userAuth: User,
     @Body() changePasswordDto: ChangePasswordDto,
-  ){
+  ) {
     return this.userService.changePassword(changePasswordDto, userAuth);
   }
 
@@ -112,6 +131,4 @@ export class UserController {
   ): Promise<ResponseData> {
     return this.userService.listSimilarByUsername(userName, userAuth);
   }
-
-  
 }

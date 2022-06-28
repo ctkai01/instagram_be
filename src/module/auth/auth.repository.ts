@@ -53,6 +53,9 @@ export class UserRepository extends Repository<User> {
       .leftJoinAndSelect('users.posts', 'posts')
       .leftJoinAndSelect('posts.media', 'media')
       .leftJoinAndSelect('posts.user', 'user')
+      // .leftJoinAndSelect('posts.message', 'message')
+      // .leftJoinAndSelect('message.childComments', 'childComments')
+      // .leftJoinAndSelect('message.userComments', 'userComments')
       .where('users.user_name = :userName', { userName: userName })
       .orderBy('posts.created_at', 'DESC')
       .getOne();
@@ -159,6 +162,7 @@ export class UserRepository extends Repository<User> {
         const storiesEffect = user.stories.filter(story => {
           return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
         })
+        console.log('Effect', storiesEffect)
         user.stories = storiesEffect
         return user
       })
