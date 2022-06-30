@@ -7,8 +7,8 @@ export const UserLoginResource = async (data: User, userAuth: User): Promise<Use
     ...data,
     avatar: name,
     count_following: await data.countFollowingUser(),
-    view_all_story: await data.getViewAll(userAuth)
-
+    view_all_story: await data.getViewAll(userAuth),
+    is_following: await userAuth.isFollowing(data)
   };
 
   delete dataTransform['refresh_token'];
