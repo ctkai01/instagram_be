@@ -6,6 +6,7 @@ import { User } from 'src/entities/auth.entity';
 import _ = require('lodash');
 import { take } from 'lodash';
 import moment = require('moment');
+import { ActiveStatus } from 'src/constants';
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -152,6 +153,7 @@ export class UserRepository extends Repository<User> {
     const users = await this.createQueryBuilder('users')
       .leftJoinAndSelect('users.stories', 'story')
       .where('users.id  IN (:...userIds)')
+      .where('story.status = :status', { status: ActiveStatus.ACTIVE })
       .setParameter('userIds', [...idsUserFollowing])
       .orderBy('story.created_at', 'ASC')
       .getMany();
@@ -177,6 +179,7 @@ export class UserRepository extends Repository<User> {
     const user = await this.createQueryBuilder('users')
       .leftJoinAndSelect('users.stories', 'story')
       .where('users.user_name = :userName', { userName: user_name })
+      .where('story.status = :status', { status: ActiveStatus.ACTIVE })
       .orderBy('story.created_at', 'ASC')
       .getOne();
       

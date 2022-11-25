@@ -40,6 +40,9 @@ export class Post {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
 
+  @Column({ default: ActiveStatus.NO_ACTIVE })
+  status?: ActiveStatus;
+
   @ManyToOne(() => User, (user) => user.posts, {
     onDelete: 'CASCADE',
   })

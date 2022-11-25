@@ -23,7 +23,7 @@ import {
 } from '@nestjs/platform-express';
 import { MulterConfig } from 'src/config/multer-config';
 import { TransformInterceptor } from 'src/custom-response/core.response';
-import { GetCurrentUser, GetCurrentUserId } from 'src/decorators';
+import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 import { User } from 'src/entities/auth.entity';
 import { HttpExceptionValidateFilter } from 'src/filter/http-exception.filter';
 import { AtGuard } from 'src/guards';

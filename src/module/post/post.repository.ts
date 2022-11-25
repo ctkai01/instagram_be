@@ -113,7 +113,7 @@ export class PostRepository extends Repository<Post> {
   async getListPostByUser(userId: number): Promise<Post[]> {
     try {
       const listPost = await this.find({
-        where: { created_by: userId },
+        where: { created_by: userId, status: ActiveStatus.ACTIVE },
         relations: ['media'],
       });
       return listPost;
@@ -138,6 +138,23 @@ export class PostRepository extends Repository<Post> {
     try {
       const posts = await this.find({
         relations: ['user', 'media'],
+        where: {
+          status: ActiveStatus.ACTIVE
+        }
+      });
+      return posts;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async getAllPostNotApprove(): Promise<Post[]> {
+    try {
+      const posts = await this.find({
+        relations: ['user', 'media'],
+        where: {
+          status: ActiveStatus.NO_ACTIVE
+        }
       });
       return posts;
     } catch (err) {

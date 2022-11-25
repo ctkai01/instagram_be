@@ -38,6 +38,9 @@ export class Story {
   @OneToMany(() => UserStory, (userStories) => userStories.story)
   userStories?: UserStory[];
 
+  @Column({ default: ActiveStatus.NO_ACTIVE })
+  status?: ActiveStatus;
+
   is_view?: ActiveStatus;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

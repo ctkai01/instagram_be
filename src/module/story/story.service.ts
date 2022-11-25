@@ -1,7 +1,11 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import moment = require('moment');
+import { ActiveStatus } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
+import { Story } from 'src/entities/story.entity';
 import { ResponseData } from 'src/interface/response.interface';
+import { StoryReviewCollection } from 'src/resource/story/story-review.collection';
 import { StoryResource } from 'src/resource/story/story.resource';
 import { UserStoryResource } from 'src/resource/user/user-story.resource';
 import { getRepository } from 'typeorm';
@@ -40,6 +44,10 @@ export class StoryService {
 
     if (!story) {
       throw new NotFoundException('Story not found');
+    }
+
+    if (story.status == ActiveStatus.NO_ACTIVE) {
+      throw new NotFoundException('Story not active');
     }
 
     const responseData: ResponseData = {
@@ -90,5 +98,48 @@ export class StoryService {
   }
 
 
- 
+  async getStoriesApprove() {
+    const stories = await this.storyRepository.find({
+      where: [{
+        status: ActiveStatus.NO_ACTIVE
+      }],
+      relations: ['user']
+
+    })
+
+    const storiesEffect = stories.filter(story => {
+      return (new Date(story.created_at)).getTime() >= moment().startOf('day').valueOf() && (new Date(story.created_at)).getTime() <= moment().endOf('day').valueOf() 
+    })
+
+
+    const storiesCollection = await StoryReviewCollection(storiesEffect);
+
+    const responseData: ResponseData = {
+      data:  storiesCollection,
+      message: 'Get Stories Review success'
+    
+    };
+
+    return responseData
+  }
+
+
+  async acceptStoryReview(idStory: number) {
+    const story = await this.storyRepository.findOne(idStory, {relations: ['user']});
+    if (!story) {
+      throw new InternalServerErrorException('Story not found');
+    }
+
+    if (story.status === ActiveStatus.ACTIVE) {
+      throw new InternalServerErrorException('Can not accept story active');
+    }
+
+    story.status = ActiveStatus.ACTIVE
+    getRepository(Story).save(story)
+    const responseData: ResponseData = {
+      message: 'Accept Story Successfully',
+    };
+    return responseData
+
+  }
 }

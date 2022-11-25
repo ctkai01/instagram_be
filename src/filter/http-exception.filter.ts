@@ -17,7 +17,7 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
       exception.getResponse()['message'].length > 1
         ? exception.getResponse()['message']
         : exception.getResponse()['message'][0];
-
+   
     if (status === HttpStatus.UNAUTHORIZED) {
       return response.status(status).json({
         statusCode: status,

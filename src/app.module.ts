@@ -27,6 +27,8 @@ import { ActiveConversation } from './entities/active-conversation.entity';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { UserStory } from './entities/user-story.entity';
+import { Admin } from './entities/admin.entity';
+import { AdminModule } from './module/admin/admin.module';
 
 @Module({
   imports: [
@@ -81,7 +83,8 @@ import { UserStory } from './entities/user-story.entity';
             ActiveConversation,
             Conversation,
             Message,
-            UserStory
+            UserStory,
+            Admin
             // ChatMember,
             // ChatTopic,
             // MessageUser,
@@ -98,6 +101,7 @@ import { UserStory } from './entities/user-story.entity';
     StoryModule,
     CommentModule,
     ChatModule,
+    AdminModule
   ],
   providers: [
     {

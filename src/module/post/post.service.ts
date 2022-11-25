@@ -14,9 +14,11 @@ import { ResponseData } from 'src/interface/response.interface';
 import { PostHomeCollection } from 'src/resource/post/post-home.collection';
 import { PostHomeResource } from 'src/resource/post/post-home.resource';
 import { PostReactResource } from 'src/resource/post/post-react.resource';
+import { PostReviewCollection } from 'src/resource/post/post-review.collection';
 import { PostCollection } from 'src/resource/post/post.collection';
 import { PostResource } from 'src/resource/post/post.resource';
 import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
+import { getRepository } from 'typeorm';
 import { ActionPostDto } from './dto/action-post-dto';
 import { CreatePostDto } from './dto/create-post-dto';
 import { PostRepository } from './post.repository';
@@ -92,6 +94,45 @@ export class PostService {
       };
       return responseData;
     }
+  }
+
+  async getPostApprove(pageNumber: number) {
+    const posts = (await this.postRepository.getAllPostNotApprove()).sort(function (
+      postA,
+      postB,
+    ) {
+      return postA.created_at > postB.created_at
+        ? -1
+        : postA.created_at < postB.created_at
+        ? 1
+        : 0;
+    });
+
+    const [take, page, skip] = calcPaginate(
+      this.configService.get('follow.take'),
+      pageNumber,
+    );
+
+    const pagination: Pagination = {
+      skip,
+      take,
+    };
+
+    let postsPaginate;
+    let count;
+
+    [postsPaginate, count] = new Post().getPostCountPaginate(
+      posts,
+      pagination,
+    );
+    const postsCollection = await PostReviewCollection(postsPaginate)
+
+    const responseData: ResponseData = {
+      data: paginateResponse([postsCollection, count], page, take),
+      message: 'Get Post Successfully',
+    };
+
+    return responseData;
   }
 
   async getPost(userAuth: User, pageNumber: number): Promise<any> {
@@ -186,5 +227,23 @@ export class PostService {
 
       return responseData;
     }
+  }
+
+  async acceptPostReview(idPost: number) {
+    const post: Post = await this.postRepository.getPostById(idPost);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.status === ActiveStatus.ACTIVE) {
+      throw new InternalServerErrorException('Can not accept post active');
+    }
+
+    post.status = ActiveStatus.ACTIVE
+    getRepository(Post).save(post)
+    const responseData: ResponseData = {
+      message: 'Accept Post Successfully',
+    };
+    return responseData
   }
 }
