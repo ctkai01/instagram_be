@@ -6,7 +6,7 @@ import { User } from 'src/entities/auth.entity';
 import _ = require('lodash');
 import { take } from 'lodash';
 import moment = require('moment');
-import { ActiveStatus } from 'src/constants';
+import { ActiveStatus, Status } from 'src/constants';
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -67,6 +67,7 @@ export class UserRepository extends Repository<User> {
     const users = await this.createQueryBuilder('users')
       .where('users.user_name  like :search', { search: `${search}%` })
       .orWhere('users.name  like :search', { search: `${search}%` })
+      .orWhere('users.phone  like :search', { search: `${search}%` })
       .getMany();
 
     return users;
@@ -76,6 +77,7 @@ export class UserRepository extends Repository<User> {
     const users = await this.createQueryBuilder('users')
       .where('users.user_name  like :search', { search: `%${search}%` })
       .orWhere('users.name  like :search', { search: `%${search}%` })
+      .orWhere('users.phone  like :search', { search: `${search}%` })
       .getMany();
 
     return users;

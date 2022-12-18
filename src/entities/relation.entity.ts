@@ -40,11 +40,15 @@ export class Relation {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at?: string;
 
-  @ManyToOne(() => User, (user) => user.follower)
+  @ManyToOne(() => User, (user) => user.follower, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'user_id' })
   userFollower?: User;
 
-  @ManyToOne(() => User, (user) => user.following)
+  @ManyToOne(() => User, (user) => user.following, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'friend_id' })
   userFollowing?: User;
 }

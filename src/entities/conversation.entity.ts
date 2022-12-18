@@ -15,7 +15,9 @@ export class Conversation {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, {
+    onDelete: 'CASCADE'
+  })
   @JoinTable()
   users?: User[];
 

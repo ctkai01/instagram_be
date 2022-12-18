@@ -161,6 +161,17 @@ export class User {
     return Boolean(isFollowing) ? FollowStatus.FOLLOW : FollowStatus.UN_FOLLOW;
   }
 
+  getUserCountPaginate?(
+    data: User[],
+    pagination: Pagination,
+  ): [User[], number] {
+    const { skip, take } = pagination;
+    const count = data.length;
+    const posts = data.slice(skip, take + skip);
+
+    return [posts, count];
+  }
+
   async getViewAll?(userAuth: User): Promise<ViewStory> {
     const user = await getRepository(User).createQueryBuilder('users')
     .leftJoinAndSelect('users.stories', 'story')

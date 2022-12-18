@@ -142,4 +142,15 @@ export class StoryService {
     return responseData
 
   }
+
+  async deleteStoryAdmin(idStory: number) {
+    const result = await this.storyRepository.deleteStoryAdmin(idStory);
+    if (result) {
+      const responseData: ResponseData = {
+        message: 'Delete Story Successfully',
+      };
+
+      return responseData;
+    }
+  }
 }

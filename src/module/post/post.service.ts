@@ -65,6 +65,17 @@ export class PostService {
     }
   }
 
+  async deletePostAdmin(idPost: number): Promise<any> {
+    const result = await this.postRepository.deletePostAdmin(idPost);
+    if (result) {
+      const responseData: ResponseData = {
+        message: 'Delete Post Successfully',
+      };
+
+      return responseData;
+    }
+  }
+
   async getListPostByUserId(
     idUser: number,
     userAuth: User,

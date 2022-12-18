@@ -19,7 +19,10 @@ export class Message {
   @Column({ nullable: true })
   image?: string;
 
-  @ManyToOne(() => User, (user) => user.messages)
+  @ManyToOne(() => User, (user) => user.messages, {
+    onDelete: 'CASCADE'
+
+  })
   user?: User;
 
   @ManyToOne(

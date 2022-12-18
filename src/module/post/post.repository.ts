@@ -110,6 +110,25 @@ export class PostRepository extends Repository<Post> {
     }
   }
 
+  async deletePostAdmin(idPost: number) {
+    const post = await this.findOne({
+      where: { id: idPost },
+      relations: ['user'],
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    try {
+      const resultDeletePost = await this.remove(post);
+
+      return Boolean(resultDeletePost);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async getListPostByUser(userId: number): Promise<Post[]> {
     try {
       const listPost = await this.find({

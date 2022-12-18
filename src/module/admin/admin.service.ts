@@ -5,9 +5,12 @@ import { AuthService } from '../auth/auth.service';
 import { AdminRepository } from './admin.repository';
 import { LoginAminDto } from './dto/login-admin-dto';
 import * as bcrypt from 'bcryptjs';
-import { ResponseData } from 'src/interface';
+import { Pagination, ResponseData } from 'src/interface';
 import { PostService } from '../post/post.service';
 import { StoryService } from '../story/story.service';
+import { calcPaginate, paginateResponse } from 'src/untils/paginate-response';
+import { User } from 'src/entities/auth.entity';
+import { UserAdminCollection } from 'src/resource/user/user-admin.collection';
 @Injectable()
 export class AdminService {
   constructor(
@@ -63,4 +66,63 @@ export class AdminService {
     return this.storyService.acceptStoryReview(idStory)
 
   }
+
+  async allUser(pageNumber: number) {
+    const users = await this.authService.getAllUser()
+ 
+    const [take, page, skip] = calcPaginate(
+      this.configService.get('follow.take'),
+      pageNumber,
+    );
+
+    const pagination: Pagination = {
+      skip,
+      take,
+    };
+
+    let postsPaginate;
+    let count;
+
+    [postsPaginate, count] = new User().getUserCountPaginate(
+      users,
+      pagination,
+    );
+
+    const postsCollection = await UserAdminCollection(postsPaginate)
+
+
+    const responseData: ResponseData = {
+      message: 'Get users Successfully!',
+      data: paginateResponse([postsCollection, count], page, take),
+    };
+    return responseData;
+  }
+
+  async deleteUser(idUser: number) {
+
+    const result = await this.authService.deleteUser(idUser);
+
+    console.log("Result: ", result)
+    const responseData: ResponseData = {
+      message: 'Delete User Successfully!',
+    };
+    return responseData
+  }
+
+
+  async deletePost(idPost: number) {
+
+    const responseData = await this.postService.deletePostAdmin(idPost);
+
+    return responseData
+  }
+
+  async deleteStory(idStory: number) {
+
+    const responseData = await this.storyService.deleteStoryAdmin(idStory);
+
+    return responseData
+  }
+
+  
 }

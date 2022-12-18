@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller, Get, Param, ParseIntPipe, Post, Query, UseFilters,
+  Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseFilters,
   UseGuards,
   UseInterceptors
 } from '@nestjs/common';
@@ -50,10 +50,44 @@ export class AdminController {
 
 
   @Public()
+  @Get('/users')
+  allUser(
+    @Query('page', ParseIntPipe) pageNumber: number,
+
+  ) {
+    return this.adminService.allUser(pageNumber)
+  }
+
+  @Public()
+  @Delete('/users/:id')
+  deleteUser(
+    @Param('id', ParseIntPipe) idUser: number,
+  ) {
+    return this.adminService.deleteUser(idUser)
+  }
+
+
+  @Public()
   @Post('/stories-review/:id')
   storiesReviewAccept(
     @Param('id', ParseIntPipe) idStory: number,
   ) {
     return this.adminService.storiesReviewAccept(idStory)
+  }
+
+  @Public()
+  @Delete('/posts/:id')
+  deletePost(
+    @Param('id', ParseIntPipe) idPost: number,
+  ) {
+    return this.adminService.deletePost(idPost)
+  }
+
+  @Public()
+  @Delete('/stories/:id')
+  deleteStory(
+    @Param('id', ParseIntPipe) idStory: number,
+  ) {
+    return this.adminService.deleteStory(idStory)
   }
 }

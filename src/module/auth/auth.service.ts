@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,7 @@ import { catchError, map } from 'rxjs/operators';
 import { User } from 'src/entities/auth.entity';
 import { JWTPayload } from 'src/interface/jwt.payload';
 import { UserLoginResource } from 'src/resource/user/user-login.resource';
-import { getRepository } from 'typeorm';
+import { DeleteResult, getRepository } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { UserRepository } from './auth.repository';
 import { CreateUserDto } from './dto/create-user-dto';
@@ -70,6 +70,7 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: [{ id: userId }],
     });
+    console.log("Reset Token", user)
     user.refresh_token = null;
 
     await this.userRepository.save(user);
@@ -131,6 +132,21 @@ export class AuthService {
     user.refresh_token = hashRf;
 
     await this.userRepository.save(user);
+  }
+
+  async getAllUser(): Promise<User[]> {
+    const users = await this.userRepository.find()
+    return users
+  }
+
+  async deleteUser(idUser: number): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: [{ id: idUser }],
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const result = await this.userRepository.remove(user)
   }
 
   getJwtUser(jwt: string):Observable<Promise<User> | null> {

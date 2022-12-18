@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { ActiveStatus, MediaType } from 'src/constants';
 import { User } from 'src/entities/auth.entity';
 import { Story } from 'src/entities/story.entity';
@@ -77,5 +78,21 @@ export class StoryRepository extends Repository<Story> {
       console.log(err);
     }
   }
+  async deleteStoryAdmin(idStory: number) {
+    const story = await this.findOne({
+      where: { id: idStory },
+    });
 
+    if (!story) {
+      throw new NotFoundException('Story not found');
+    }
+
+    try {
+      const resultDeletePost = await this.remove(story);
+
+      return Boolean(resultDeletePost);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }
