@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Request,
   UseFilters,
   UseGuards,
   UseInterceptors,
@@ -46,7 +47,8 @@ export class AuthController {
   @UseGuards(RtGuard)
   @Post('refreshToken')
   refreshToken(
-    @GetCurrentUser('refreshToken') refreshToken: string,
+    @Request() req: any,
+    @GetCurrentUser('refresh_token') refreshToken: string,
     @GetCurrentUserId() userId: any,
   ): Promise<Tokens> {
     return this.authService.refreshToken(userId, refreshToken);

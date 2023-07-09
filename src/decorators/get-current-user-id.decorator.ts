@@ -5,7 +5,7 @@ export const GetCurrentUserId = createParamDecorator(
     const request = context.switchToHttp().getRequest();
     // return request.user['sub'];
     if (request.user['refreshToken']) {
-      return request.user['payload']['sub'];
+      return request.user['sub'];
     }
     return request.user['sub'];
   },

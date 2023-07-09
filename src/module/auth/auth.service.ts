@@ -80,6 +80,8 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: [{ id: userId }],
     });
+    console.log("RF: ", rf)
+    console.log("RF 2: ", user.refresh_token)
     if (user && bcrypt.compare(rf, user.refresh_token)) {
       const tokens = this.getTokens(userId, user.user_name);
       await this.updateRtHash(userId, (await tokens).refresh_token);

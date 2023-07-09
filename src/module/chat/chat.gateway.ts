@@ -206,7 +206,7 @@ export class ChatGateway
                   this.server
                     .to(activeConversation.socketId)
                     .emit('newMessage', transFormMessage);
-                console.log('send messs')
+                  console.log('SEND MESSAGE WITH conversation ID: ', activeConversation.socketId)
 
                 },
               );

@@ -9,6 +9,6 @@ export const GetCurrentUser = createParamDecorator(
       where: [{ id: request.user['sub'] }],
     });
     if (!data) return useAuth;
-    return useAuth;
+    return useAuth[data];
   },
 );
